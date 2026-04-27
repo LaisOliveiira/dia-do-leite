@@ -1,80 +1,126 @@
 {% extends 'base.html' %}
 
-{% block title %}O Meu Painel - XI DIA DO LEITE{% endblock %}
+{% block title %}Área do Participante - XI DIA DO LEITE{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-12 max-w-6xl">
 
-    <div class="mb-10 border-b pb-6">
-        <h1 class="text-4xl font-black text-slate-800 uppercase italic tracking-tighter">Área do Participante</h1>
-        <p class="text-gray-500 font-bold mt-2 uppercase text-xs tracking-widest">Bem-vindo(a), {{ user.first_name }}
-        </p>
+    <div class="mb-12 border-b border-gray-200 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+            <h1 class="text-4xl font-black text-slate-800 uppercase tracking-tighter fonte-agro">Meus Ingressos</h1>
+            <p class="text-[10px] text-gray-400 font-bold mt-2 uppercase tracking-widest">Gerencie suas participações no
+                XI Dia do Leite</p>
+        </div>
+        <div class="bg-white px-6 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Participante</p>
+            <p class="text-sm font-bold text-slate-700">{{ user.first_name }}</p>
+        </div>
     </div>
 
-    <div class="mb-8">
-        <h2 class="text-xl font-black text-slate-700 uppercase italic tracking-tight border-l-4 border-gebov pl-3">Os
-            Meus Ingressos</h2>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {% for inscricao in inscricoes %}
-        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-6 flex-grow">
-                <div class="flex justify-between items-start mb-4">
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-gray-100 text-gray-500">
-                        {{ inscricao.evento.tipo.nome }}
-                    </span>
+        <div class="relative group">
+            <div
+                class="bg-white rounded-[2rem] shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
 
-                    {% if inscricao.status == 'aprovado' %}
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-green-100 text-green-700">Aprovado</span>
-                    {% elif inscricao.status == 'pendente' %}
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-yellow-100 text-yellow-700">Pendente</span>
+                <div class="p-8 flex-grow relative">
+                    <div
+                        class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-organico rounded-full border border-gray-100 hidden md:block">
+                    </div>
+
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                            {{ inscricao.evento.tipo.nome }}
+                        </span>
+
+                        {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
+                        <span
+                            class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Confirmado
+                        </span>
+                        {% else %}
+                        <span
+                            class="text-[9px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100">
+                            Pendente
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <h3 class="text-2xl font-black text-slate-800 mb-4 fonte-agro leading-tight">
+                        {{ inscricao.evento.titulo }}
+                    </h3>
+
+                    <div class="space-y-3 text-xs font-bold text-gray-500">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">📅</span>
+                            <span>{{ inscricao.evento.data_evento|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">⏰</span>
+                            <span>{{ inscricao.evento.horario_evento|time:"H:i" }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">📍</span>
+                            <span class="truncate">{{ inscricao.evento.local }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t-2 md:border-t-0 md:border-l-2 border-dashed border-gray-100 relative">
+                    <div
+                        class="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-organico rounded-full border border-gray-100 md:hidden">
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-50/50 p-8 flex flex-col items-center justify-center min-w-[200px] border-l border-gray-50">
+                    {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
+                    <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">Validar
+                        na Entrada</p>
+                    <div
+                        class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 group-hover:scale-105 transition-transform">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ inscricao.codigo_ingresso }}"
+                            alt="QR Code" class="w-28 h-28 mix-blend-multiply opacity-80 group-hover:opacity-100">
+                    </div>
+                    <p class="text-[8px] font-mono text-gray-400 mt-4 tracking-tighter">{{
+                        inscricao.codigo_ingresso|stringformat:"s"|slice:":13" }}...</p>
                     {% else %}
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-blue-100 text-blue-700">Gratuito</span>
+                    <div class="text-center space-y-4">
+                        <div
+                            class="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                            💳</div>
+                        <p class="text-[9px] font-black text-orange-700 uppercase tracking-widest leading-relaxed">
+                            Pagamento<br>Necessário</p>
+                        <a href="{{ inscricao.link_pagamento|default:'#' }}" target="_blank"
+                            class="inline-block w-full py-3 bg-gebov text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-900/20 hover:bg-red-900 transition-colors">
+                            Pagar Inscrição
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
-
-                <h3 class="text-xl font-black text-slate-800 uppercase italic leading-tight mb-2">{{
-                    inscricao.evento.titulo }}</h3>
-                <p class="text-xs text-gray-400 font-bold mb-4">📅 {{ inscricao.evento.data_evento|date:"d/m/Y" }} às {{
-                    inscricao.evento.horario_evento|time:"H:i" }}</p>
-
-                {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
-                <div
-                    class="bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-center border border-gray-100 mt-4">
-                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Apresente este código
-                        na entrada</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ inscricao.codigo_ingresso }}"
-                        alt="QR Code Ingresso" class="w-32 h-32 rounded-lg mix-blend-multiply">
-                    <p class="text-[8px] font-mono text-gray-400 mt-3 break-all text-center">{{
-                        inscricao.codigo_ingresso }}</p>
-                </div>
-                {% else %}
-                <div class="bg-red-50 rounded-2xl p-6 text-center border border-red-100 mt-4">
-                    <p class="text-xs font-black text-red-700 uppercase tracking-widest mb-2">Aguardando Pagamento</p>
-                    <a href="{{ inscricao.link_pagamento }}" target="_blank"
-                        class="block w-full py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition">
-                        Pagar com PicPay
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
         {% empty %}
         <div
-            class="col-span-full py-12 text-center bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center">
-            <p class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Ainda não tem inscrições ativas.
+            class="col-span-full py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-3xl mb-6">🎫</div>
+            <p class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Você ainda não possui inscrições.
             </p>
             <a href="{% url 'landing_page' %}"
-                class="inline-block text-xs font-bold text-white bg-gebov px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-red-900 transition">
-                Ver eventos disponíveis
+                class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gebov transition-colors shadow-xl">
+                Explorar Programação
             </a>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    /* Estilo para garantir que o background orgânico "coma" as bordas do ingresso */
+    .bg-organico {
+        background-color: #F9F8F6;
+        /* Cor que definimos no base.html anteriormente */
+    }
+</style>
 {% endblock %}
