@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if not user.is_authenticated %}
+<section class="bg-gebov text-white pt-20 pb-28 relative flex flex-col items-center justify-center">
+    <div
+        class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]">
+    </div>
+    <div class="relative z-10 container mx-auto px-4 flex flex-col items-center">
+
+        <div
+            class="w-72 h-72 md:w-96 md:h-96 bg-white rounded-[3rem] shadow-2xl flex flex-col items-center justify-center p-8 text-center text-slate-800 mb-10">
+            <h1 class="text-4xl md:text-5xl font-black italic tracking-tighter">
+                Logo do <br> <span class="text-gebov">Dia do <br> Leite</span>
+            </h1>
+            <p
+                class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-6 border-t border-gray-100 pt-4 w-full">
+                Espaço Reservado</p>
+        </div>
+
+        <a href="{% url 'cadastro' %}"
+            class="bg-white text-gebov font-black py-4 px-10 rounded-2xl uppercase tracking-widest text-xs shadow-xl hover:bg-gray-100 transition-colors">
+            Cadastrar-se no Evento
+        </a>
+    </div>
+</section>
+
+<section id="sobre" class="py-24 bg-white relative z-20">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h2 class="text-4xl font-black text-slate-800 mb-8 uppercase italic tracking-tighter">Sobre o evento</h2>
+        <div class="space-y-6 text-gray-700 text-lg leading-relaxed text-justify md:text-left">
+            <p>O <strong>XI Dia do Leite</strong> reafirma o seu papel como o maior evento de tecnologia agropecuária da
+                região. De 30 de junho a 4 de julho de 2026, o IFMG – Campus Bambuí será palco de uma programação
+                intensa, voltada para quem busca estar por dentro das inovações da cadeia produtiva do leite.</p>
+            <p>Serão dias de muito conteúdo, troca de experiências e conexão entre estudantes, produtores, profissionais
+                e entusiastas da área. Mesas-redondas, minicursos práticos, palestras magnas e exposições técnicas
+                marcarão a edição com dinamismo e qualidade.</p>
+            <p>Agradecemos desde já a todos que farão parte desta jornada. O conhecimento, as ideias e as conexões que o
+                evento proporciona seguirão ecoando. Prepare-se para a melhor edição!</p>
+        </div>
+    </div>
+</section>
+
+<section id="informacoes" class="py-24 bg-gray-50 border-t border-gray-200 relative z-20">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-black text-slate-800 mb-4 uppercase italic tracking-tighter">Informações</h2>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">O XI Dia do Leite será realizado presencialmente no IFMG
+                – Campus Bambuí. Confira no mapa abaixo a localização exata do nosso campus.</p>
+        </div>
+        <div class="grid md:grid-cols-12 gap-8 items-start">
+            <div class="md:col-span-4 space-y-4">
+                <div class="bg-white p-6 rounded-2xl border-l-4 border-gebov shadow-sm">
+                    <h4 class="font-black text-xs uppercase mb-2 text-slate-800">Público-Alvo</h4>
+                    <p class="text-gray-600 text-sm">Estudantes, produtores rurais e empresas do setor lácteo.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-l-4 border-gebov shadow-sm">
+                    <h4 class="font-black text-xs uppercase mb-2 text-slate-800">Certificação</h4>
+                    <p class="text-gray-600 text-sm">Certificação oficial de horas extracurriculares emitidas no
+                        sistema.</p>
+                </div>
+                <div class="bg-gebov text-white p-6 rounded-2xl shadow-lg">
+                    <h4 class="font-black uppercase tracking-widest text-xs mb-4 opacity-80">Organização</h4>
+                    <p class="text-sm font-medium mb-2">📍 IFMG Campus Bambuí</p>
+                    <p class="text-sm font-medium mb-2">✉️ contato@safrajr.com.br</p>
+                    <p class="text-sm font-medium">📸 @safrajr.ifmg</p>
+                </div>
+            </div>
+            <div
+                class="md:col-span-8 h-[400px] rounded-3xl overflow-hidden shadow-md border border-gray-200 bg-white p-2">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3744.475454664687!2d-46.0028716248386!3d-20.019973881335043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94b4074251ed0743%3A0xe0383a51513a38e0!2sIFMG%20-%20Campus%20Bambu%C3%AD!5e0!3m2!1spt-BR!2sbr!4v1714080000000!5m2!1spt-BR!2sbr"
+                    width="100%" height="100%" style="border:0; border-radius:1rem;" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<section class="py-12 flex-grow bg-gray-50" x-data="{ filtro: 'Todos' }">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <div
+            class="bg-gebov rounded-[2rem] p-10 mb-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between">
+            <div
+                class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]">
+            </div>
+            <div class="relative z-10 text-center md:text-left">
+                <h1 class="text-4xl font-black uppercase italic tracking-tighter mb-2">Olá, {{ user.first_name }}! 👋
+                </h1>
+                <p class="text-sm uppercase tracking-widest opacity-90">Pronto para inovar no XI Dia do Leite?</p>
+            </div>
+            <a href="{% url 'painel' %}"
+                class="relative z-10 mt-6 md:mt-0 bg-white text-gebov font-black uppercase tracking-widest text-[10px] px-8 py-4 rounded-2xl shadow-lg hover:bg-gray-100">Meus
+                Ingressos 🎟️</a>
+        </div>
+
+        <div class="flex flex-col lg:flex-row justify-between items-center mb-10 gap-6 border-b pb-6">
+            <div class="text-center lg:text-left">
+                <h2 class="text-2xl font-black text-slate-800 uppercase italic">Programação</h2>
+                <p class="text-gray-500 font-bold uppercase text-[10px]">Eventos Disponíveis</p>
+            </div>
+            <div class="flex gap-2">
+                <button @click="filtro = 'Todos'"
+                    :class="filtro === 'Todos' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-200'"
+                    class="px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all">Todos</button>
+                <button @click="filtro = 'Palestra'"
+                    :class="filtro === 'Palestra' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-200'"
+                    class="px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all">Palestras</button>
+                <button @click="filtro = 'Minicurso'"
+                    :class="filtro === 'Minicurso' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-200'"
+                    class="px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all">Minicursos</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for evento in eventos %}
+            <div x-show="filtro === 'Todos' || '{{ evento.tipo.nome }}'.toLowerCase().includes(filtro.toLowerCase())"
+                class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all flex flex-col group">
+
+                <div class="mb-4">
+                    <span class="text-[10px] bg-red-50 text-gebov font-black uppercase px-3 py-1.5 rounded-full">
+                        {{ evento.tipo.nome }}
+                    </span>
+                </div>
+
+                <h3 class="text-2xl font-black text-slate-800 tracking-tight mb-3 group-hover:text-gebov">
+                    {{ evento.titulo }}
+                </h3>
+
+                <p class="text-gray-500 text-sm mb-8 flex-grow">
+                    "{{ evento.descricao }}"
+                </p>
+
+                <div class="space-y-3 text-xs font-bold text-gray-500 mb-8 bg-gray-50 p-5 rounded-2xl border">
+                    <p>📍 {{ evento.local }}</p>
+                    <p>⏰ {{ evento.data_evento|date:"d/m/Y" }} às {{ evento.horario_evento|time:"H:i" }}</p>
+                </div>
+
+                <a href="{% url 'inscrever_evento' evento.id %}"
+                    class="block text-center py-4 bg-gebov text-white rounded-2xl font-black uppercase text-[10px] shadow-lg hover:bg-red-900 transition">
+                    {% if evento.is_pago %}Comprar (R$ {{ evento.preco }}){% else %}Garantir Vaga Gratuita{% endif %}
+                </a>
+            </div>
+            {% empty %}
+            <div
+                class="col-span-full py-24 text-center bg-white rounded-3xl border text-gray-400 font-black uppercase tracking-widest">
+                Sem programação ativa no momento.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

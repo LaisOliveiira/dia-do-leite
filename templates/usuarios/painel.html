@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}O Meu Painel - XI DIA DO LEITE{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-6xl">
+
+    <div class="mb-10 border-b pb-6">
+        <h1 class="text-4xl font-black text-slate-800 uppercase italic tracking-tighter">Área do Participante</h1>
+        <p class="text-gray-500 font-bold mt-2 uppercase text-xs tracking-widest">Bem-vindo(a), {{ user.first_name }}
+        </p>
+    </div>
+
+    <div class="mb-8">
+        <h2 class="text-xl font-black text-slate-700 uppercase italic tracking-tight border-l-4 border-gebov pl-3">Os
+            Meus Ingressos</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for inscricao in inscricoes %}
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-6 flex-grow">
+                <div class="flex justify-between items-start mb-4">
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-gray-100 text-gray-500">
+                        {{ inscricao.evento.tipo.nome }}
+                    </span>
+
+                    {% if inscricao.status == 'aprovado' %}
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-green-100 text-green-700">Aprovado</span>
+                    {% elif inscricao.status == 'pendente' %}
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-yellow-100 text-yellow-700">Pendente</span>
+                    {% else %}
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-blue-100 text-blue-700">Gratuito</span>
+                    {% endif %}
+                </div>
+
+                <h3 class="text-xl font-black text-slate-800 uppercase italic leading-tight mb-2">{{
+                    inscricao.evento.titulo }}</h3>
+                <p class="text-xs text-gray-400 font-bold mb-4">📅 {{ inscricao.evento.data_evento|date:"d/m/Y" }} às {{
+                    inscricao.evento.horario_evento|time:"H:i" }}</p>
+
+                {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
+                <div
+                    class="bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-center border border-gray-100 mt-4">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Apresente este código
+                        na entrada</p>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ inscricao.codigo_ingresso }}"
+                        alt="QR Code Ingresso" class="w-32 h-32 rounded-lg mix-blend-multiply">
+                    <p class="text-[8px] font-mono text-gray-400 mt-3 break-all text-center">{{
+                        inscricao.codigo_ingresso }}</p>
+                </div>
+                {% else %}
+                <div class="bg-red-50 rounded-2xl p-6 text-center border border-red-100 mt-4">
+                    <p class="text-xs font-black text-red-700 uppercase tracking-widest mb-2">Aguardando Pagamento</p>
+                    <a href="{{ inscricao.link_pagamento }}" target="_blank"
+                        class="block w-full py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition">
+                        Pagar com PicPay
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div
+            class="col-span-full py-12 text-center bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center">
+            <p class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Ainda não tem inscrições ativas.
+            </p>
+            <a href="{% url 'landing_page' %}"
+                class="inline-block text-xs font-bold text-white bg-gebov px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-red-900 transition">
+                Ver eventos disponíveis
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

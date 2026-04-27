@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-20 flex justify-center">
+    <div class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100">
+        <h2 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter mb-8 text-center">Criar Conta
+        </h2>
+
+        {% if messages %}
+        {% for m in messages %}
+        <div class="p-4 mb-6 rounded-xl bg-red-50 text-red-700 text-xs font-bold border border-red-100">
+            {{ m }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nome Completo</label>
+                <input type="text" name="nome" required
+                    class="w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">E-mail</label>
+                <input type="email" name="email" required
+                    class="w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">CPF</label>
+                    <input type="text" name="cpf" required maxlength="14" oninput="mascaraCPF(this)"
+                        placeholder="000.000.000-00"
+                        class="w-full px-4 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Telefone</label>
+                    <input type="text" name="telefone" required maxlength="15" oninput="mascaraTelefone(this)"
+                        placeholder="(00) 00000-0000"
+                        class="w-full px-4 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none text-sm">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Senha</label>
+                <input type="password" name="senha" required
+                    class="w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Senha</label>
+                <input type="password" name="confirmacao" required
+                    class="w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:border-gebov outline-none">
+            </div>
+
+            <button type="submit"
+                class="w-full py-5 bg-gebov text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-xl hover:bg-red-900 transition">Finalizar
+                Inscrição</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function mascaraCPF(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        i.value = v;
+    }
+    function mascaraTelefone(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+        v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+        i.value = v;
+    }
+</script>
+{% endblock %}

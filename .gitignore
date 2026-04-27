@@ -1,0 +1,16 @@
+# Ambientes Virtuais
+venv/
+env/
+.env
+
+# Banco de dados local (não subir para a internet por segurança)
+db.sqlite3
+
+# Arquivos de cache do Python e Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+media/
+staticfiles/

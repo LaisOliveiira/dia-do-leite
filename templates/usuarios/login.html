@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - XI DIA DO LEITE{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="bg-gebov p-8 text-center text-white">
+            <h2 class="text-3xl font-black italic uppercase tracking-tighter">Acesso ao Sistema</h2>
+            <p class="text-xs font-bold uppercase tracking-widest mt-2 text-white/70">Entre para gerir as suas
+                inscrições</p>
+        </div>
+
+        <div class="p-8">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="mb-6 p-4 rounded-xl text-sm font-bold bg-red-50 text-red-700 border border-red-100">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}" class="space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">E-mail</label>
+                    <input type="email" name="email" required
+                        class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-gebov transition-colors"
+                        placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Palavra-passe</label>
+                    <input type="password" name="senha" required
+                        class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-gebov transition-colors"
+                        placeholder="••••••••">
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="w-full bg-gebov text-white font-black py-4 rounded-2xl hover:bg-red-900 transition-colors uppercase tracking-widest text-sm shadow-lg shadow-gebov/30">
+                        Entrar
+                    </button>
+                    <a href="{% url 'cadastro' %}"
+                        class="block text-center mt-6 text-xs font-bold text-gray-400 hover:text-gebov uppercase tracking-widest transition-colors">
+                        Não tem conta? <span class="border-b border-gebov/30 pb-0.5">Registe-se aqui</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

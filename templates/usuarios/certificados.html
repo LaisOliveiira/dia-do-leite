@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Certificados - XI DIA DO LEITE{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-6xl">
+
+    <div class="mb-10 border-b pb-6">
+        <h1 class="text-4xl font-black text-slate-800 uppercase italic tracking-tighter">Meus Certificados</h1>
+        <p class="text-gray-500 font-bold mt-2 uppercase text-xs tracking-widest">Documentos oficiais de participação
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for cert in certificados %}
+        <div
+            class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex items-center justify-between group hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-6">
+                <div
+                    class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gebov group-hover:bg-gebov group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-800 uppercase italic leading-tight">{{ cert.evento.titulo
+                        }}</h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Carga Horária: {{
+                        cert.evento.carga_horaria }} Horas</p>
+                </div>
+            </div>
+
+            <a href="{% url 'gerar_certificado_pdf' cert.id %}"
+                class="bg-slate-900 text-white p-4 rounded-2xl hover:bg-black transition shadow-lg flex items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-widest hidden md:block">Download PDF</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+            </a>
+        </div>
+        {% empty %}
+        <div
+            class="col-span-full py-20 text-center bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center">
+            <div class="max-w-xs mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-sm font-black text-gray-400 uppercase tracking-widest">Nenhum certificado disponível.</p>
+                <p class="text-[10px] text-gray-400 font-bold mt-2">Os certificados são libertados apenas após a
+                    confirmação da sua presença no evento.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
