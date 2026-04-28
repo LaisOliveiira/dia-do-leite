@@ -5,6 +5,17 @@ from django.db.models import Sum, Count
 
 def landing_page(request):
     eventos_destaque = Evento.objects.all().order_by('data_evento')[:3]
+    eventos = Evento.objects.all()
+    # Pega os IDs de todos os eventos que o usuário já se inscreveu
+    minhas_inscricoes = Inscricao.objects.filter(usuario=request.user).values_list('evento_id', flat=True)
+    # Verifica se ele já tem QUALQUER minicurso
+    ja_tem_minicurso = Inscricao.objects.filter(usuario=request.user, evento__tipo__nome__icontains='minicurso').exists()
+    
+    return render(request, 'core/landing_page.html', {
+        'eventos': eventos,
+        'minhas_inscricoes': minhas_inscricoes,
+        'ja_tem_minicurso': ja_tem_minicurso
+    })
     return render(request, 'core/landing_page.html', {'eventos': eventos_destaque})
 
 @login_required(login_url='/auth/login/')

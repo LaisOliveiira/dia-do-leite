@@ -68,7 +68,7 @@ def gerar_pdf_certificado(inscricao):
     p.setLineWidth(1)
     p.line(largura/2 - 5*cm, 6*cm, largura/2 + 5*cm, 6*cm)
     p.setFont("Helvetica", 10)
-    p.drawCentredString(largura/2, 5.5*cm, "Coordenação Safra Jr.")
+    p.drawCentredString(largura/2, 5.5*cm, "Coordenação Gebov, Mais Leite.")
 
     p.showPage()
     p.save()
