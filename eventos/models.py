@@ -20,6 +20,7 @@ class Evento(models.Model):
     is_pago = models.BooleanField(default=False, verbose_name="Evento Pago?")
     preco = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     carga_horaria = models.IntegerField(help_text="Horas para sair no certificado", default=0)
+    vagas = models.IntegerField(default=0, help_text="Limite de vagas. Ex: 20 para minicursos. Deixe 0 para ilimitado (Palestras).")
 
     def __str__(self):
         return self.titulo

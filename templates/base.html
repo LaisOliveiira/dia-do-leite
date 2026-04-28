@@ -89,7 +89,7 @@
 
                     <a href="{% url 'dashboard' %}"
                         class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 hover:text-gebov rounded-xl transition">
-                        📊 Dashboard Safra Jr.
+                        📊 Dashboard Gerencia
                     </a>
 
                     <a href="{% url 'criar_evento' %}"
@@ -100,15 +100,25 @@
                 {% endif %}
 
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4 mb-2">Participante</p>
+
+                <a href="{% url 'comprar_ingressos' %}"
+                    class="flex items-center gap-3 px-4 py-4 mb-4 text-sm font-black text-white bg-gebov rounded-2xl shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all group">
+                    <span class="text-xl group-hover:scale-110 transition-transform">🛒</span>
+                    <span>Comprar Ingressos</span>
+                </a>
+
                 <a href="{% url 'painel' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 rounded-xl">🎟️
-                    Meus Ingressos</a>
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 hover:text-gebov rounded-xl transition">
+                    <span class="text-lg">🎟️</span> Meus Ingressos
+                </a>
                 <a href="{% url 'certificados' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 rounded-xl">🎓
-                    Meus Certificados</a>
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 hover:text-gebov rounded-xl transition">
+                    <span class="text-lg">🎓</span> Meus Certificados
+                </a>
                 <a href="{% url 'perfil' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 rounded-xl">⚙️
-                    Meu Perfil</a>
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-red-50 hover:text-gebov rounded-xl transition">
+                    <span class="text-lg">⚙️</span> Meu Perfil
+                </a>
             </div>
             <div class="p-4 border-t"><a href="{% url 'logout' %}"
                     class="flex justify-center w-full py-3 bg-red-50 text-red-600 font-black text-xs rounded-xl hover:bg-red-100">Sair
@@ -128,7 +138,7 @@
                 <h3 class="text-3xl font-black italic mb-8 uppercase">Fale Conosco</h3>
                 <ul class="space-y-4 text-gray-300 font-medium">
                     <li>📱 (37) 9 9841-4130</li>
-                    <li>📸 @safrajr.ifmg</li>
+                    <li>📸 @exemplo.ifmg</li>
                     <li>✉️ dia.leite@ifmg.edu.br</li>
                 </ul>
             </div>

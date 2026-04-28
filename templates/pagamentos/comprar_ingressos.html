@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .bg-dots-light {
+        background-color: #fcfbfb;
+        background-image: radial-gradient(rgba(117, 21, 22, 0.08) 1.5px, transparent 1.5px);
+        background-size: 24px 24px;
+    }
+
+    .fonte-agro {
+        font-family: 'Merriweather', serif;
+    }
+
+    .radio-custom input[type="radio"] {
+        display: none;
+    }
+
+    .card-disabled {
+        opacity: 0.6;
+        filter: grayscale(0.8);
+        cursor: not-allowed !important;
+    }
+</style>
+
+<div class="min-h-screen bg-dots-light py-12" x-data="{ 
+        pacoteSelecionado: '', 
+        jaTemPalestra: {{ ja_tem_palestras|yesno:'true,false' }},
+        jaTemMini: {{ ja_tem_minicurso|yesno:'true,false' }}
+     }">
+
+    <div class="container mx-auto px-4 max-w-4xl">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black text-slate-800 fonte-agro mb-4">Loja Oficial</h1>
+            <p class="text-gray-500 font-medium">Selecione seu ingresso abaixo.</p>
+        </div>
+
+        <form method="POST" class="space-y-8">
+            {% csrf_token %}
+
+            <div class="grid md:grid-cols-3 gap-6">
+
+                <label class="radio-custom relative group transition-all"
+                    :class="jaTemPalestra ? 'card-disabled' : 'cursor-pointer'"
+                    @click="if(!jaTemPalestra) pacoteSelecionado = 'palestras'">
+                    <input type="radio" name="pacote" value="palestras" x-model="pacoteSelecionado"
+                        :disabled="jaTemPalestra">
+                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
+                        :class="pacoteSelecionado === 'palestras' ? 'border-gebov shadow-lg' : 'border-gray-100'">
+                        <h3 class="text-xl font-black text-slate-800 mb-2">Palestras</h3>
+                        <p class="text-xs text-gray-500 mb-6">Acesso total às palestras do evento.</p>
+                        <div class="pt-4 border-t">
+                            {% if ja_tem_palestras %}
+                            <span class="text-[10px] font-black text-green-600 uppercase">Já Adquirido ✓</span>
+                            {% else %}
+                            <p class="text-2xl font-black text-slate-800">R$ 50,00</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </label>
+
+                <label class="radio-custom relative group transition-all"
+                    :class="(jaTemPalestra || jaTemMini) ? 'card-disabled' : 'cursor-pointer'"
+                    @click="if(!jaTemPalestra && !jaTemMini) pacoteSelecionado = 'combo'">
+                    <input type="radio" name="pacote" value="combo" x-model="pacoteSelecionado"
+                        :disabled="jaTemPalestra || jaTemMini">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                        <span
+                            class="bg-gebov text-white text-[8px] font-black uppercase px-3 py-1 rounded-full shadow-lg">Combo
+                            VIP</span>
+                    </div>
+                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
+                        :class="pacoteSelecionado === 'combo' ? 'border-gebov shadow-2xl scale-105' : 'border-gray-100'">
+                        <h3 class="text-xl font-black text-slate-800 mb-2">Combo</h3>
+                        <p class="text-xs text-gray-500 mb-6">Palestras + 1 Minicurso com desconto.</p>
+                        <div class="pt-4 border-t">
+                            {% if ja_tem_palestras or ja_tem_minicurso %}
+                            <span class="text-[10px] font-black text-gebov uppercase">Indisponível</span>
+                            {% else %}
+                            <p class="text-2xl font-black text-gebov">R$ 80,00</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </label>
+
+                <label class="radio-custom relative group transition-all"
+                    :class="jaTemMini ? 'card-disabled' : 'cursor-pointer'"
+                    @click="if(!jaTemMini) pacoteSelecionado = 'minicurso'">
+                    <input type="radio" name="pacote" value="minicurso" x-model="pacoteSelecionado"
+                        :disabled="jaTemMini">
+                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
+                        :class="pacoteSelecionado === 'minicurso' ? 'border-gebov shadow-lg' : 'border-gray-100'">
+                        <h3 class="text-xl font-black text-slate-800 mb-2">Minicurso</h3>
+                        <p class="text-xs text-gray-500 mb-6">Apenas 1 minicurso prático avulso.</p>
+                        <div class="pt-4 border-t">
+                            {% if ja_tem_minicurso %}
+                            <span class="text-[10px] font-black text-gebov uppercase">Limite Atingido</span>
+                            {% else %}
+                            <p class="text-2xl font-black text-slate-800">R$ 50,00</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <div x-show="(pacoteSelecionado === 'combo' || pacoteSelecionado === 'minicurso')" x-transition
+                class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mt-8">
+                <h4 class="font-black text-slate-800 mb-4">Selecione o Minicurso</h4>
+                <select name="minicurso_id"
+                    class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 outline-none">
+                    <option value="" disabled selected>Escolha um minicurso...</option>
+                    {% for curso in minicursos %}
+                    <option value="{{ curso.id }}">{{ curso.titulo }} ({{ curso.vagas }} vagas)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex justify-end pt-8">
+                <button type="submit" x-show="pacoteSelecionado !== ''"
+                    class="bg-gebov text-white font-black uppercase tracking-widest text-[10px] px-12 py-5 rounded-full shadow-xl hover:bg-red-900 transition-all">
+                    Finalizar Pedido ➔
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
