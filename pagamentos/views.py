@@ -6,21 +6,27 @@ from eventos.models import Evento, Inscricao
 
 @login_required
 def comprar_ingressos(request):
-    # Verifica de forma independente o que o usuário já possui
-    # IMPORTANTE: Verifique se no seu banco os nomes são exatamente 'Palestra' e 'Minicurso'
+    # =========================================================
+    # 1. VERIFICA O QUE O UTILIZADOR JÁ POSSUI
+    # =========================================================
+    
+    # Verifica de forma INDEPENDENTE as inscrições (usando 'mini' e 'palestra')
     ja_tem_minicurso = Inscricao.objects.filter(
         usuario=request.user, 
-        evento__tipo__nome__icontains='Minicurso'
+        evento__tipo__nome__icontains='mini'
     ).exists()
     
     ja_tem_palestras = Inscricao.objects.filter(
         usuario=request.user, 
-        evento__tipo__nome__icontains='Palestra'
+        evento__tipo__nome__icontains='palestra'
     ).exists()
 
-    # Mostra minicursos. DICA: Se não aparecer, verifique o campo 'vagas' no Admin.
-    minicursos = Evento.objects.filter(tipo__nome__icontains='Minicurso', vagas__gt=0)
+    # Traz TODOS os minicursos cadastrados para o HTML tratar as vagas
+    minicursos = Evento.objects.filter(tipo__nome__icontains='mini')
 
+    # =========================================================
+    # 2. PROCESSAMENTO DO PEDIDO
+    # =========================================================
     if request.method == 'POST':
         pacote_escolhido = request.POST.get('pacote')
         minicurso_id = request.POST.get('minicurso_id')
@@ -30,24 +36,28 @@ def comprar_ingressos(request):
         
         # --- TRAVAS DE SEGURANÇA CORRIGIDAS ---
         
-        # Bloqueia apenas se tentar comprar o que já tem
+        # 1. Tenta comprar Palestra, mas já tem? Bloqueia.
         if pacote_escolhido == 'palestras' and ja_tem_palestras:
-            messages.error(request, 'Você já possui acesso às palestras.')
+            messages.error(request, 'Você já possui acesso às palestras do evento.')
             return redirect('comprar_ingressos')
 
+        # 2. Tenta comprar Minicurso, mas já tem? Bloqueia.
         if pacote_escolhido == 'minicurso' and ja_tem_minicurso:
-            messages.error(request, 'Você já possui um minicurso.')
+            messages.error(request, 'Você já atingiu o limite de 1 minicurso por pessoa.')
             return redirect('comprar_ingressos')
 
-        # Bloqueia Combo se já tiver qualquer parte (Palestras ou Minicurso)
+        # 3. Tenta comprar Combo, mas já tem um dos dois? Bloqueia.
         if pacote_escolhido == 'combo' and (ja_tem_palestras or ja_tem_minicurso):
-            messages.error(request, 'Você já possui parte deste combo. Adquira o item restante separadamente.')
+            messages.error(request, 'Você já possui parte deste combo. Adquira o item restante separadamente de forma avulsa.')
             return redirect('comprar_ingressos')
 
+        # 4. Esqueceu de selecionar o minicurso na lista? Bloqueia.
         if pacote_escolhido in ['minicurso', 'combo'] and not minicurso_id:
-            messages.error(request, 'Selecione um minicurso para este pacote.')
+            messages.error(request, 'Selecione qual minicurso você deseja cursar.')
             return redirect('comprar_ingressos')
             
+        # --- CRIAÇÃO DO PEDIDO ---
+        
         minicurso_obj = Evento.objects.filter(id=minicurso_id).first() if minicurso_id else None
 
         Pedido.objects.create(
@@ -57,11 +67,16 @@ def comprar_ingressos(request):
             valor_total=valor
         )
         
-        messages.success(request, 'Pedido gerado! Prossiga para o pagamento.')
+        messages.success(request, 'Pedido gerado com sucesso! Prossiga para o pagamento.')
         return redirect('painel')
 
-    return render(request, 'pagamentos/comprar_ingressos.html', {
+    # =========================================================
+    # 3. RENDERIZAÇÃO DA LOJA
+    # =========================================================
+    context = {
         'minicursos': minicursos,
         'ja_tem_minicurso': ja_tem_minicurso,
         'ja_tem_palestras': ja_tem_palestras
-    })
+    }
+    
+    return render(request, 'pagamentos/comprar_ingressos.html', context)
