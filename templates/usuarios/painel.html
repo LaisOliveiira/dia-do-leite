@@ -1,126 +1,186 @@
 {% extends 'base.html' %}
 
-{% block title %}Área do Participante - XI DIA DO LEITE{% endblock %}
-
 {% block content %}
-<div class="container mx-auto px-4 py-12 max-w-6xl">
+<style>
+    .bg-dots-light {
+        background-color: #fcfbfb;
+        background-image: radial-gradient(rgba(117, 21, 22, 0.08) 1.5px, transparent 1.5px);
+        background-size: 24px 24px;
+    }
 
-    <div class="mb-12 border-b border-gray-200 pb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-            <h1 class="text-4xl font-black text-slate-800 uppercase tracking-tighter fonte-agro">Meus Ingressos</h1>
-            <p class="text-[10px] text-gray-400 font-bold mt-2 uppercase tracking-widest">Gerencie suas participações no
-                XI Dia do Leite</p>
-        </div>
-        <div class="bg-white px-6 py-3 rounded-2xl border border-gray-100 shadow-sm">
-            <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Participante</p>
-            <p class="text-sm font-bold text-slate-700">{{ user.first_name }}</p>
-        </div>
-    </div>
+    .fonte-agro {
+        font-family: 'Merriweather', serif;
+    }
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {% for inscricao in inscricoes %}
-        <div class="relative group">
-            <div
-                class="bg-white rounded-[2rem] shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
+    .shadow-braba {
+        box-shadow: 0 20px 40px -15px rgba(117, 21, 22, 0.15);
+    }
 
-                <div class="p-8 flex-grow relative">
-                    <div
-                        class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-organico rounded-full border border-gray-100 hidden md:block">
-                    </div>
+    .hover-lift {
+        transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+    }
 
-                    <div class="flex justify-between items-start mb-6">
-                        <span
-                            class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
-                            {{ inscricao.evento.tipo.nome }}
-                        </span>
+    .hover-lift:hover {
+        transform: translateY(-5px);
+    }
 
-                        {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
-                        <span
-                            class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Confirmado
-                        </span>
-                        {% else %}
-                        <span
-                            class="text-[9px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100">
-                            Pendente
-                        </span>
-                        {% endif %}
-                    </div>
+    /* Detalhe do corte do ingresso */
+    .ticket-cutout-top {
+        clip-path: circle(12px at 50% 0);
+    }
 
-                    <h3 class="text-2xl font-black text-slate-800 mb-4 fonte-agro leading-tight">
-                        {{ inscricao.evento.titulo }}
-                    </h3>
+    .ticket-cutout-bottom {
+        clip-path: circle(12px at 50% 100%);
+    }
+</style>
 
-                    <div class="space-y-3 text-xs font-bold text-gray-500">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg">📅</span>
-                            <span>{{ inscricao.evento.data_evento|date:"d/m/Y" }}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg">⏰</span>
-                            <span>{{ inscricao.evento.horario_evento|time:"H:i" }}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg">📍</span>
-                            <span class="truncate">{{ inscricao.evento.local }}</span>
-                        </div>
-                    </div>
+<div class="min-h-screen bg-dots-light py-12">
+    <div class="container mx-auto px-4 max-w-5xl">
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <div>
+                <h1 class="text-4xl font-black text-slate-800 fonte-agro">Meus Ingressos</h1>
+                <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-2">Gerencie suas
+                    participações no XI Dia do Leite</p>
+            </div>
+            <div class="bg-white px-6 py-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Participante</p>
+                    <p class="text-sm font-black text-slate-800">{{ user.get_full_name|default:user.username }}</p>
                 </div>
-
-                <div class="border-t-2 md:border-t-0 md:border-l-2 border-dashed border-gray-100 relative">
-                    <div
-                        class="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-organico rounded-full border border-gray-100 md:hidden">
-                    </div>
-                </div>
-
-                <div
-                    class="bg-gray-50/50 p-8 flex flex-col items-center justify-center min-w-[200px] border-l border-gray-50">
-                    {% if inscricao.status == 'aprovado' or inscricao.status == 'gratis' %}
-                    <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">Validar
-                        na Entrada</p>
-                    <div
-                        class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 group-hover:scale-105 transition-transform">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ inscricao.codigo_ingresso }}"
-                            alt="QR Code" class="w-28 h-28 mix-blend-multiply opacity-80 group-hover:opacity-100">
-                    </div>
-                    <p class="text-[8px] font-mono text-gray-400 mt-4 tracking-tighter">{{
-                        inscricao.codigo_ingresso|stringformat:"s"|slice:":13" }}...</p>
-                    {% else %}
-                    <div class="text-center space-y-4">
-                        <div
-                            class="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
-                            💳</div>
-                        <p class="text-[9px] font-black text-orange-700 uppercase tracking-widest leading-relaxed">
-                            Pagamento<br>Necessário</p>
-                        <a href="{{ inscricao.link_pagamento|default:'#' }}" target="_blank"
-                            class="inline-block w-full py-3 bg-gebov text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-900/20 hover:bg-red-900 transition-colors">
-                            Pagar Inscrição
-                        </a>
-                    </div>
-                    {% endif %}
+                <div class="w-10 h-10 rounded-full bg-gebov/10 flex items-center justify-center text-gebov font-black">
+                    {{ user.first_name|slice:":1" }}
                 </div>
             </div>
         </div>
-        {% empty %}
-        <div
-            class="col-span-full py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center">
-            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-3xl mb-6">🎫</div>
-            <p class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Você ainda não possui inscrições.
-            </p>
-            <a href="{% url 'landing_page' %}"
-                class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gebov transition-colors shadow-xl">
-                Explorar Programação
-            </a>
+
+        {% if pedidos %}
+        <div class="mb-16">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                Aguardando Pagamento
+            </h3>
+
+            <div class="grid grid-cols-1 gap-6">
+                {% for pedido in pedidos %}
+                <div
+                    class="bg-white border-l-4 border-orange-400 rounded-3xl p-8 shadow-braba flex flex-col md:flex-row justify-between items-center gap-8 hover-lift">
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span
+                                class="bg-orange-50 text-orange-600 text-[9px] font-black px-3 py-1 rounded-full uppercase">Pendente</span>
+                            <span class="text-[10px] font-bold text-gray-300 italic">ID do Pedido: #{{ pedido.id
+                                }}</span>
+                        </div>
+                        <h4 class="text-2xl font-black text-slate-800 capitalize mb-1">{{ pedido.pacote }}</h4>
+                        {% if pedido.minicurso_selecionado %}
+                        <p class="text-sm text-gray-500 font-medium italic">Inclui: {{
+                            pedido.minicurso_selecionado.titulo }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-center md:text-right">
+                        <p class="text-3xl font-black text-gebov mb-4">R$ {{ pedido.valor_total }}</p>
+                        <a href="#"
+                            class="inline-block bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] px-10 py-5 rounded-2xl shadow-xl hover:bg-black transition-all">
+                            Pagar Agora ➔
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
+        {% endif %}
+
+        <div class="mb-12">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                Ingressos Confirmados
+            </h3>
+
+            {% if inscricoes %}
+            <div class="grid grid-cols-1 gap-8">
+                {% for inscricao in inscricoes %}
+
+                <div
+                    class="bg-white rounded-[2rem] overflow-hidden shadow-braba border border-gray-100 flex flex-col md:flex-row hover-lift group relative">
+
+                    <div
+                        class="p-8 flex-grow border-b md:border-b-0 md:border-r border-dashed border-gray-200 relative">
+                        <div
+                            class="hidden md:block absolute -right-3 top-0 w-6 h-6 bg-dots-light rounded-full transform -translate-y-1/2">
+                        </div>
+                        <div
+                            class="hidden md:block absolute -right-3 bottom-0 w-6 h-6 bg-dots-light rounded-full transform translate-y-1/2">
+                        </div>
+
+                        <span
+                            class="text-[9px] font-black text-gebov bg-red-50 px-3 py-1.5 rounded-lg uppercase mb-4 inline-block tracking-widest">
+                            {{ inscricao.evento.tipo.nome }}
+                        </span>
+
+                        <h4
+                            class="text-3xl font-black text-slate-800 fonte-agro mb-2 group-hover:text-gebov transition-colors">
+                            {{ inscricao.evento.titulo }}
+                        </h4>
+
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">
+                            Titular: <span class="text-slate-700">{{ user.get_full_name|default:user.username }}</span>
+                        </p>
+
+                        <div class="space-y-4 pt-6 border-t border-gray-50 text-xs font-bold text-gray-400">
+                            <p class="flex items-center gap-3">
+                                <span class="text-lg">📅</span>
+                                <span class="text-slate-800">{{ inscricao.evento.data_evento|date:"d \d\e F \d\e Y"
+                                    }}</span>
+                            </p>
+                            <p class="flex items-center gap-3">
+                                <span class="text-lg">📍</span>
+                                <span class="text-slate-800">{{ inscricao.evento.local }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-8 bg-gray-50 flex flex-col items-center justify-center min-w-[280px]">
+                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-5">Passe de Acesso
+                        </p>
+
+                        <div
+                            class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-4 transition-transform group-hover:scale-105">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ingresso-{{ inscricao.id }}-{{ user.username }}"
+                                alt="QR Code do Ingresso"
+                                class="w-32 h-32 opacity-90 group-hover:opacity-100 transition-opacity">
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Cód. Validação
+                            </p>
+                            <p class="text-lg font-black text-slate-800 tracking-[0.2em]">#{{
+                                inscricao.id|stringformat:"06d" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            {% if not pedidos %}
+            <div
+                class="bg-white rounded-[3rem] p-20 text-center border-2 border-dashed border-gray-100 flex flex-col items-center justify-center shadow-sm">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-4xl mb-6 grayscale">
+                    🎟️</div>
+                <h4 class="text-xl font-black text-slate-800 mb-2">Ainda não possui inscrições.</h4>
+                <p class="text-sm text-gray-400 font-medium max-w-xs mx-auto mb-10">Você ainda não garantiu sua vaga.
+                    Explore a programação e adquira seu passaporte.</p>
+                <a href="{% url 'landing_page' %}"
+                    class="bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] px-12 py-5 rounded-full hover:bg-black transition-all shadow-xl">
+                    Explorar Programação
+                </a>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+
     </div>
 </div>
-
-<style>
-    /* Estilo para garantir que o background orgânico "coma" as bordas do ingresso */
-    .bg-organico {
-        background-color: #F9F8F6;
-        /* Cor que definimos no base.html anteriormente */
-    }
-</style>
 {% endblock %}

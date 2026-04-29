@@ -35,7 +35,7 @@
             <p class="text-gray-500 font-medium">Selecione seu ingresso abaixo.</p>
         </div>
 
-        <form method="POST" class="space-y-8">
+        <form method="POST" action="{% url 'comprar_ingressos' %}" class="space-y-8">
             {% csrf_token %}
 
             <div class="grid md:grid-cols-3 gap-6">
@@ -109,9 +109,17 @@
                 <select name="minicurso_id"
                     class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 outline-none">
                     <option value="" disabled selected>Escolha um minicurso...</option>
+
                     {% for curso in minicursos %}
-                    <option value="{{ curso.id }}">{{ curso.titulo }} ({{ curso.vagas }} vagas)</option>
+                    {% if curso.vagas > 0 %}
+                    <option value="{{ curso.id }}">{{ curso.titulo }} ({{ curso.vagas }} vagas disponíveis)</option>
+                    {% else %}
+                    <option value="" disabled>{{ curso.titulo }} (ESGOTADO - 0 Vagas)</option>
+                    {% endif %}
+                    {% empty %}
+                    <option value="" disabled>Nenhum minicurso cadastrado no sistema.</option>
                     {% endfor %}
+
                 </select>
             </div>
 

@@ -1,22 +1,28 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from eventos.models import Evento, Inscricao
 from django.db.models import Sum, Count
 
+from eventos.models import Evento, Inscricao
+from pagamentos.models import Pedido
+
 def landing_page(request):
-    eventos_destaque = Evento.objects.all().order_by('data_evento')[:3]
     eventos = Evento.objects.all()
-    # Pega os IDs de todos os eventos que o usuário já se inscreveu
-    minhas_inscricoes = Inscricao.objects.filter(usuario=request.user).values_list('evento_id', flat=True)
-    # Verifica se ele já tem QUALQUER minicurso
-    ja_tem_minicurso = Inscricao.objects.filter(usuario=request.user, evento__tipo__nome__icontains='minicurso').exists()
+    
+    # TRAVA DE SEGURANÇA: Só procura inscrições se a pessoa estiver logada
+    if request.user.is_authenticated:
+        minhas_inscricoes = Inscricao.objects.filter(usuario=request.user).values_list('evento_id', flat=True)
+        ja_tem_minicurso = Inscricao.objects.filter(usuario=request.user, evento__tipo__nome__icontains='minicurso').exists()
+    else:
+        # Se for um visitante sem conta, não tem inscrições
+        minhas_inscricoes = []
+        ja_tem_minicurso = False
     
     return render(request, 'core/landing_page.html', {
         'eventos': eventos,
         'minhas_inscricoes': minhas_inscricoes,
         'ja_tem_minicurso': ja_tem_minicurso
     })
-    return render(request, 'core/landing_page.html', {'eventos': eventos_destaque})
+
 
 @login_required(login_url='/auth/login/')
 def dashboard_view(request):
@@ -41,3 +47,24 @@ def dashboard_view(request):
         'receita_total': receita_total,
         'eventos': eventos_stats
     })
+
+
+@login_required
+def painel(request):
+    """
+    Dashboard do participante: Mostra inscrições confirmadas e pedidos pendentes.
+    """
+    # 1. Busca as inscrições confirmadas (os ingressos que o aluno já possui)
+    inscricoes = Inscricao.objects.filter(usuario=request.user)
+    
+    # 2. Busca os pedidos feitos na loja (que podem estar aguardando pagamento)
+    # Ordenamos pelo ID decrescente para o pedido mais recente aparecer primeiro
+    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
+    
+    context = {
+        'inscricoes': inscricoes,
+        'pedidos': pedidos,
+    }
+    
+    # Certifique-se de que o caminho do template abaixo está correto de acordo com sua pasta
+    return render(request, 'usuarios/painel.html', context)
