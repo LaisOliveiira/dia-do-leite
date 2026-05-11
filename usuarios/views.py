@@ -103,8 +103,10 @@ def logout_view(request):
 @login_required(login_url='/auth/login/')
 def painel_view(request):
     # 1. Busca os ingressos já confirmados
-    inscricoes = Inscricao.objects.filter(usuario=request.user).select_related('evento')
-    
+    inscricoes = Inscricao.objects.filter(
+        usuario=request.user, 
+        status__in=['aprovado', 'gratis']
+    ).select_related('evento')    
     # 2. Busca os pedidos pendentes da loja
     pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
     
