@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Evento, Inscricao
 from .models import Evento, TipoEvento
+from .models import Edicao
 import requests
 
 @login_required(login_url='/auth/login/')
@@ -87,3 +88,7 @@ def inscrever_evento_view(request, evento_id):
 
         messages.warning(request, 'Inscrição reservada! Por favor, conclua o pagamento para liberar seu QR Code.')
         return redirect('painel')
+
+def lista_edicoes(request):
+    edicoes = Edicao.objects.all().prefetch_related('fotos')
+    return render(request, 'eventos/edicoes.html', {'edicoes': edicoes})

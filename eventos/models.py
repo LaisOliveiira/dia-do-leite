@@ -48,3 +48,26 @@ class Inscricao(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} - {self.evento.titulo}"
+
+class Edicao(models.Model):
+    numero = models.IntegerField(unique=True, help_text="Ex: 10")
+    ano = models.IntegerField()
+    titulo_tema = models.CharField(max_length=200, blank=True)
+    capa = models.ImageField(upload_to='edicoes/capas/', blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Edição"
+        verbose_name_plural = "Edições"
+        ordering = ['-numero']
+
+    def __str__(self):
+        return f"{self.numero}ª Edição ({self.ano})"
+
+class GaleriaFoto(models.Model):
+    edicao = models.ForeignKey(Edicao, on_delete=models.CASCADE, related_name='fotos')
+    imagem = models.ImageField(upload_to='edicoes/galeria/')
+    legenda = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = "Foto da Galeria"
+        verbose_name_plural = "Fotos da Galeria"

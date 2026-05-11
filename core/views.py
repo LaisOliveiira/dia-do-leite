@@ -47,24 +47,4 @@ def dashboard_view(request):
         'receita_total': receita_total,
         'eventos': eventos_stats
     })
-
-
-@login_required
-def painel(request):
-    """
-    Dashboard do participante: Mostra inscrições confirmadas e pedidos pendentes.
-    """
-    # 1. Busca as inscrições confirmadas (os ingressos que o aluno já possui)
-    inscricoes = Inscricao.objects.filter(usuario=request.user)
     
-    # 2. Busca os pedidos feitos na loja (que podem estar aguardando pagamento)
-    # Ordenamos pelo ID decrescente para o pedido mais recente aparecer primeiro
-    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
-    
-    context = {
-        'inscricoes': inscricoes,
-        'pedidos': pedidos,
-    }
-    
-    # Certifique-se de que o caminho do template abaixo está correto de acordo com sua pasta
-    return render(request, 'usuarios/painel.html', context)

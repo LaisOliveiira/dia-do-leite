@@ -11,6 +11,7 @@ from django.contrib.auth.tokens import default_token_generator
 
 from .models import Usuario
 from eventos.models import Inscricao
+from pagamentos.models import Pedido
 
 # Importamos os nossos novos serviços
 from .services import enviar_email_ativacao, gerar_pdf_certificado
@@ -101,8 +102,16 @@ def logout_view(request):
 
 @login_required(login_url='/auth/login/')
 def painel_view(request):
+    # 1. Busca os ingressos já confirmados
     inscricoes = Inscricao.objects.filter(usuario=request.user).select_related('evento')
-    return render(request, 'usuarios/painel.html', {'inscricoes': inscricoes})
+    
+    # 2. Busca os pedidos pendentes da loja
+    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
+    
+    return render(request, 'usuarios/painel.html', {
+        'inscricoes': inscricoes,
+        'pedidos': pedidos
+    })
 
 @login_required(login_url='/auth/login/')
 def perfil_view(request):
