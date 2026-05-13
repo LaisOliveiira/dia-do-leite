@@ -1,6 +1,28 @@
 from django.db import models
 from django.conf import settings
 from eventos.models import Evento
+from django.contrib.auth.models import User
+
+class Lote(models.Model):
+    nome = models.CharField(max_length=50, help_text="Ex: Lote 1, Lote 2, Último Lote")
+    preco_palestras = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Preço Passaporte Palestras")
+    preco_minicurso = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Preço Minicurso Avulso")
+    preco_combo = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Preço Combo (Palestras + 1 Minicurso)")
+    ativo = models.BooleanField(default=False, help_text="Marque para ativar este lote. Os outros serão desativados automaticamente.")
+
+    class Meta:
+        verbose_name = "Lote de Venda"
+        verbose_name_plural = "Lotes de Venda"
+
+    def save(self, *args, **kwargs):
+        # Mágica: Se este lote está a ser salvo como ativo, desativa todos os outros!
+        if self.ativo:
+            Lote.objects.exclude(pk=self.pk).update(ativo=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        status = "🟢 ATIVO" if self.ativo else "🔴 Inativo"
+        return f"{self.nome} - {status}"
 
 class Pedido(models.Model):
     PACOTE_CHOICES = (

@@ -103,8 +103,10 @@ def logout_view(request):
 @login_required(login_url='/auth/login/')
 def painel_view(request):
     # 1. Busca os ingressos já confirmados
-    inscricoes = Inscricao.objects.filter(usuario=request.user).select_related('evento')
-    
+    inscricoes = Inscricao.objects.filter(
+        usuario=request.user, 
+        status__in=['aprovado', 'gratis']
+    ).select_related('evento')    
     # 2. Busca os pedidos pendentes da loja
     pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
     
@@ -117,10 +119,22 @@ def painel_view(request):
 def perfil_view(request):
     if request.method == 'POST':
         usuario = request.user
+        novo_cpf = request.POST.get('cpf')
+        
+        # --- NOVA TRAVA DE SEGURANÇA DO CPF ---
+        if novo_cpf != usuario.cpf: # Se a pessoa tentou mudar o CPF
+            if Usuario.objects.filter(cpf=novo_cpf).exists():
+                messages.error(request, 'Este CPF já está cadastrado em outra conta.')
+                return redirect('perfil')
+            if not cpf_valido(novo_cpf):
+                messages.error(request, 'O novo CPF digitado é inválido.')
+                return redirect('perfil')
+            usuario.cpf = novo_cpf # Só altera se passar nos testes
+
         usuario.first_name = request.POST.get('nome')
-        usuario.cpf = request.POST.get('cpf')
         usuario.telefone = request.POST.get('telefone')
         
+        # ... (O RESTO DO SEU CÓDIGO DE SENHA CONTINUA IGUAL AQUI PARA BAIXO) ...
         senha_atual = request.POST.get('senha_atual')
         nova_senha = request.POST.get('nova_senha')
         confirmacao = request.POST.get('confirmacao')
