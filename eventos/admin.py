@@ -6,10 +6,11 @@ admin.site.register(TipoEvento)
 admin.site.register(Evento)
 admin.site.register(Inscricao)
 
-class GaleriaInline(admin.TabularInline):
+class GaleriaFotoInline(admin.TabularInline):
     model = GaleriaFoto
-    extra = 3
+    extra = 30 # Quantos campos em branco aparecem de uma vez para subir as fotos
 
 @admin.register(Edicao)
 class EdicaoAdmin(admin.ModelAdmin):
-    inlines = [GaleriaInline]
+    list_display = ('numero', 'ano', 'ativa')
+    inlines = [GaleriaFotoInline] # Isso faz a mágica de juntar as fotos na tela da Edição

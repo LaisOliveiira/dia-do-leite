@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-
-{% block content %}
+{% load static %} {% block content %}
 <style>
     .bg-dots-light {
         background-color: #fcfbfb;
@@ -36,114 +35,414 @@
 </style>
 
 {% if not user.is_authenticated %}
-<section class="bg-dots-dark pt-20 pb-48 relative"></section>
+<section class="relative bg-dots-light flex-grow pb-10 pt-16 md:pt-24 mt-0">
 
-<section class="relative z-20 -mt-40 pb-24 bg-white">
-    <div class="container mx-auto px-4 max-w-5xl">
+    <div class="absolute top-0 left-0 w-full h-40 md:h-56 bg-[#7a1b24] z-0">
+        <div class="absolute inset-0 opacity-10"
+            style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
+    </div>
 
-        <div
-            class="bg-white rounded-[3rem] shadow-float p-12 md:p-20 text-center mb-32 relative overflow-hidden flex flex-col items-center justify-center min-h-[350px] border border-gray-100 hover-lift">
-            <h1 class="text-5xl md:text-7xl font-black text-slate-800 tracking-tighter fonte-agro leading-tight">
-                XI DIA DO <span class="text-gebov italic">LEITE</span>
-            </h1>
-            <p class="mt-6 text-gray-500 font-bold uppercase tracking-[0.2em] text-xs">O Maior Evento Agropecuário do
-                IFMG</p>
+    <div class="container mx-auto px-4 text-center relative z-10">
 
-            <a href="{% url 'cadastro' %}"
-                class="mt-10 inline-block bg-gebov text-white font-black py-4 px-12 rounded-full uppercase tracking-widest text-sm hover:bg-red-900 transition-colors shadow-lg shadow-red-900/20">
-                Garantir Minha Vaga
-            </a>
+        <div class="flex justify-center mb-8">
+            <img src="{% static 'img/dia_do_leite.png' %}" alt="Logo XI Dia do Leite"
+                class="w-72 md:w-96 h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500">
         </div>
 
-        <div id="sobre" class="max-w-4xl mx-auto pt-8">
-            <div class="text-center mb-16 relative">
-                <div class="inline-flex items-center gap-3 mb-6">
-                    <div class="h-[1px] w-12 bg-gebov/30"></div>
-                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-gebov">O Manifesto</span>
-                    <div class="h-[1px] w-12 bg-gebov/30"></div>
+        <div class="flex flex-col items-center mt-2">
+            <p class="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-[0.3em] mb-8">
+                O MAIOR EVENTO AGROPECUÁRIO DO IFMG
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-10">
+                <div
+                    class="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <span class="text-xl">📅</span>
+                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">28 e 29 de
+                        Agosto</span>
                 </div>
-                <h2 class="text-5xl md:text-6xl font-black text-gebov mb-8 tracking-tighter fonte-agro">Sobre a Edição
-                </h2>
-                <p class="text-lg text-gray-600 leading-relaxed font-medium max-w-3xl mx-auto">
-                    O XI Dia do Leite reafirma o seu papel como o maior evento de tecnologia agropecuária da região. De
-                    30 de junho a 4 de julho de 2026, o IFMG – Campus Bambuí será palco de uma programação intensa para
-                    quem busca inovação na cadeia produtiva.
-                </p>
+                <div
+                    class="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <span class="text-xl">📍</span>
+                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">IFMG
+                        Bambuí</span>
+                </div>
             </div>
 
+            <a href="#"
+                class="bg-[#7a1b24] text-white font-black text-sm md:text-base uppercase tracking-widest px-12 py-5 rounded-full shadow-xl shadow-red-900/30 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+                Garantir Minha Vaga
+            </a>
         </div>
     </div>
 </section>
 
+<div id="sobre" class="max-w-4xl mx-auto pt-16 pb-20 px-4">
+    <div class="text-center relative">
+        <div class="inline-flex items-center gap-3 mb-6">
+            <div class="h-[1px] w-12 bg-[#7a1b24]/30"></div>
+            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a1b24]">O EVENTO</span>
+            <div class="h-[1px] w-12 bg-[#7a1b24]/30"></div>
+        </div>
+        <h2 class="text-5xl md:text-6xl font-black text-[#7a1b24] mb-8 tracking-tighter fonte-agro">Sobre a Edição</h2>
+        <p class="text-lg text-gray-600 leading-relaxed font-medium max-w-3xl mx-auto text-justify md:text-center">
+            O leite move o campo, conecta pessoas e impulsiona a inovação no agro. E é essa paixão pela
+            bovinocultura leiteira que faz do Dia do Leite um dos eventos mais marcantes do IFMG – Campus Bambuí.
+            <br><br>
+            Há 11 edições, estudantes, produtores e profissionais se reúnem para viver uma experiência de
+            aprendizado, troca de conhecimento e conexão com o setor leiteiro.
+            <br><br>
+            Promovido pelo GEBOV e pelo Programa Mais Leite, o evento conta com palestras, mesas-redondas,
+            networking, feira do queijo e minicursos teórico-práticos com profissionais renomados, unindo
+            tecnologia, prática e vivências reais do campo.
+        </p>
+    </div>
+</div>
+
 {% else %}
-<section class="py-16 flex-grow bg-dots-light" x-data="{ filtro: 'Todos' }">
+<section class="py-16 flex-grow bg-dots-light" x-data="{ diaAtivo: 'dia28' }">
     <div class="container mx-auto px-4 max-w-7xl">
 
         <div
-            class="bg-white rounded-[2.5rem] p-10 md:p-14 mb-16 shadow-braba border border-gray-100 relative overflow-hidden flex flex-col md:flex-row items-center justify-between hover-lift">
+            class="bg-white rounded-[2.5rem] p-10 md:p-14 mb-16 shadow-braba border border-gray-100 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 hover-lift">
             <div class="absolute top-0 right-0 w-64 h-64 bg-gebov opacity-5 rounded-full blur-3xl pointer-events-none">
             </div>
-            <div class="relative z-10 text-center md:text-left mb-8 md:mb-0">
+
+            <div class="relative z-10 text-center md:text-left flex-1">
                 <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight fonte-agro">
                     Olá, <span class="text-gebov italic uppercase">{{ user.first_name }} {{ user.last_name }}!</span> 👋
                 </h1>
                 <p class="mt-4 text-[11px] text-gray-400 font-bold uppercase tracking-[0.2em]">Pronto para inovar no XI
                     Dia do Leite?</p>
             </div>
-            <div class="relative z-10">
+
+            <div class="relative z-10 hidden md:flex justify-center flex-shrink-0">
+                <img src="{% static 'img/dia_do_leite.png' %}" alt="Logo XI Dia do Leite"
+                    class="h-16 w-auto object-contain opacity-90 hover:scale-105 transition-transform duration-300">
+            </div>
+
+            <div class="relative z-10 flex-shrink-0">
                 <a href="{% url 'painel' %}"
-                    class="bg-gebov text-white font-black uppercase tracking-widest text-[10px] px-10 py-5 rounded-full shadow-lg shadow-red-900/20">Meus
-                    Ingressos 🎟️</a>
+                    class="bg-gebov text-white font-black uppercase tracking-widest text-[10px] px-10 py-5 rounded-full shadow-lg shadow-red-900/20 whitespace-nowrap block">
+                    Meus Ingressos 🎟️
+                </a>
             </div>
         </div>
 
         <div class="flex flex-col lg:flex-row justify-between items-end mb-10 gap-6 border-b border-gray-200 pb-6">
             <h2 class="text-3xl font-black text-slate-800 fonte-agro">Programação Oficial</h2>
-            <div class="flex gap-6">
-                <button @click="filtro = 'Todos'"
-                    :class="filtro === 'Todos' ? 'text-gebov border-gebov' : 'text-gray-400 border-transparent hover:text-gray-600'"
-                    class="pb-2 border-b-2 text-xs font-black uppercase tracking-widest transition-all">Todos</button>
-                <button @click="filtro = 'Palestra'"
-                    :class="filtro === 'Palestra' ? 'text-gebov border-gebov' : 'text-gray-400 border-transparent hover:text-gray-600'"
-                    class="pb-2 border-b-2 text-xs font-black uppercase tracking-widest transition-all">Palestras</button>
-                <button @click="filtro = 'Minicurso'"
-                    :class="filtro === 'Minicurso' ? 'text-gebov border-gebov' : 'text-gray-400 border-transparent hover:text-gray-600'"
-                    class="pb-2 border-b-2 text-xs font-black uppercase tracking-widest transition-all">Minicursos</button>
+
+            <div class="flex bg-gray-100 p-1.5 rounded-full">
+                <button @click="diaAtivo = 'dia28'"
+                    :class="diaAtivo === 'dia28' ? 'bg-white text-gebov shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                    class="px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all">
+                    28/08 - Palestras
+                </button>
+                <button @click="diaAtivo = 'dia29'"
+                    :class="diaAtivo === 'dia29' ? 'bg-white text-gebov shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                    class="px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all">
+                    29/08 - Minicursos
+                </button>
             </div>
         </div>
+        <div x-show="diaAtivo === 'dia28'" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-y-4"
+            x-transition:enter-end="opacity-100 transform translate-y-0" style="display: none;">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for evento in eventos %}
-            <div x-show="filtro === 'Todos' || '{{ evento.tipo.nome }}'.toLowerCase().includes(filtro.toLowerCase())"
-                class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-braba transition-all flex flex-col relative group h-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
 
-                <div class="flex justify-between items-start mb-6">
-                    <span class="text-[9px] font-black text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg uppercase">{{
-                        evento.tipo.nome }}</span>
-                    <p class="text-sm font-black text-slate-800">
-                        {% if evento.is_pago %} Pago {% else %} <span class="text-gebov">Gratuito</span> {% endif %}
-                    </p>
-                </div>
-
-                <h3 class="text-2xl font-black text-slate-800 fonte-agro mb-4 group-hover:text-gebov transition-colors">
-                    {{ evento.titulo }}</h3>
-                <p class="text-gray-500 text-sm font-medium mb-10 flex-grow line-clamp-3">{{ evento.descricao }}</p>
-
-                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 mt-auto">
-                    <div class="space-y-3 text-[11px] font-bold text-gray-400">
-                        <p class="flex items-center gap-2">📍 {{ evento.local }}</p>
-                        <p class="flex items-center gap-2">⏰ {{ evento.data_evento|date:"d/m/Y" }}</p>
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Recepção</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">06h30</span>
                     </div>
+                    <h3 class="text-xl font-black text-slate-800 fonte-agro mb-2">Credenciamento</h3>
+                    <p class="text-gray-400 text-sm font-medium">Entrega de materiais e recepção.</p>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Palestra</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">07h30</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Palestrante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Palestrante</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Leite em Oscilação: como sobreviver à instabilidade do mercado
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Palestra</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">08h30</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Palestrante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Palestrante</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Período de transição e doenças metabólicas: impactos na reprodução
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Palestra</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">10h30</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Palestrante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Palestrante</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Melhoramento genético e a evolução do Zebuíno leiteiro
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Palestra</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">13h00</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Palestrante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Palestrante</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Gestão na bovinocultura leiteira: das decisões aos resultados
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Palestra</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">14h00</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Palestrante"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Palestrante</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Epigenética: a nutrição moldando produção e saúde
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Debate</span>
+                        <span class="text-[#7a1b24] font-black text-xl bg-red-50 px-3 py-1 rounded-lg">15h30</span>
+                    </div>
+                    <h3
+                        class="text-lg md:text-xl font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Mesa Redonda com Especialistas do Setor
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-[#7a1b24] rounded-[2rem] p-8 shadow-lg shadow-red-900/20 transition-all flex flex-col h-full lg:col-start-2">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-white px-3 py-1.5 rounded-lg uppercase">Encerramento</span>
+                        <span class="text-white font-black text-xl bg-white/20 px-3 py-1 rounded-lg">19h00</span>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-black text-white fonte-agro mt-auto mb-2">Confraternização
+                        Oficial</h3>
+                    <p class="text-red-200 text-sm font-medium flex items-center gap-2">📍 Rancho Frisiu / Haras BMO</p>
                 </div>
 
             </div>
-            {% empty %}
-            <div class="col-span-full py-12 text-center text-gray-500 font-medium">
-                Nenhum evento cadastrado ainda na programação.
-            </div>
-            {% endfor %}
         </div>
-    </div>
+
+        <div x-show="diaAtivo === 'dia29'" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-y-4"
+            x-transition:enter-end="opacity-100 transform translate-y-0" style="display: none;">
+
+            <div
+                class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center w-full md:w-auto">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">07h30 às 08h00</p>
+                    <h4 class="text-sm font-bold text-slate-800">Credenciamento</h4>
+                </div>
+                <div class="hidden md:block w-px h-10 bg-gray-200"></div>
+
+                <div class="text-center w-full md:w-auto">
+                    <p class="text-[10px] font-black text-[#7a1b24] uppercase tracking-widest mb-1">08h30</p>
+                    <h4 class="text-sm font-bold text-slate-800">Introdução Teórica</h4>
+                </div>
+                <div class="hidden md:block w-px h-10 bg-gray-200"></div>
+
+                <div class="text-center w-full md:w-auto">
+                    <p class="text-[10px] font-black text-[#7a1b24] uppercase tracking-widest mb-1">13h00</p>
+                    <h4 class="text-sm font-bold text-slate-800">Aulas Práticas</h4>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-800 fonte-agro mb-6">Opções de Minicursos</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Qualidade do leite na prática: do manejo à excelência produtiva
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Monitoramento de vacas com sensores e colares: tecnologia alinhada à prática
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Da lavoura ao cocho: produzindo silagem de alta performance
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Morfologia de vacas leiteiras: avaliação prática e funcionalidade do rebanho
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Bem-estar animal e manejo racional na pecuária leiteira
+                    </h3>
+                </div>
+
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 border-t-4 border-t-[#7a1b24] shadow-sm hover:shadow-braba transition-all flex flex-col group h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <span
+                            class="text-[9px] font-black text-[#7a1b24] bg-red-50 px-3 py-1.5 rounded-lg uppercase">Minicurso</span>
+                    </div>
+                    <div class="flex items-center gap-4 mb-5">
+                        <img src="{% static 'img/palestrantes/avatar.png' %}" alt="Instrutor"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-red-100 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Nome do Instrutor</p>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Cargo | Formação</p>
+                        </div>
+                    </div>
+                    <h3
+                        class="text-lg font-black text-slate-800 fonte-agro mt-auto group-hover:text-[#7a1b24] transition-colors">
+                        Seleção e rastreamento de oócitos
+                    </h3>
+                </div>
+            </div>
+        </div>
 </section>
 {% endif %}
 {% endblock %}

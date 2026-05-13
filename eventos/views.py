@@ -90,5 +90,6 @@ def inscrever_evento_view(request, evento_id):
         return redirect('painel')
 
 def lista_edicoes(request):
-    edicoes = Edicao.objects.all().prefetch_related('fotos')
+    # O prefetch_related torna o carregamento das fotos muito mais rápido
+    edicoes = Edicao.objects.prefetch_related('fotos').all()
     return render(request, 'eventos/edicoes.html', {'edicoes': edicoes})
