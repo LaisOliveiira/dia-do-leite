@@ -34,85 +34,110 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
+                {% for pedido in pedidos %}
+                {% if pedido.status|lower == 'pendente' %}
                 <div
-                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-green-500 hover:shadow-md transition-shadow">
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-yellow-400 hover:shadow-md transition-shadow">
 
                     <div
+                        class="absolute top-0 right-0 bg-yellow-100 text-yellow-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10">
+                        Aguardando Pagamento
+                    </div>
+
+                    <div class="mb-6 mt-4">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                            Pedido #{{ pedido.id }}
+                        </p>
+                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">
+                            {{ pedido.get_pacote_display }}
+                        </h3>
+                    </div>
+
+                    <div
+                        class="bg-orange-50 rounded-xl p-6 mb-6 flex-grow border border-orange-100 flex flex-col justify-center">
+                        <div class="flex items-center justify-between mb-4 border-b border-orange-200/50 pb-3">
+                            <span class="text-xs font-black text-orange-800 uppercase">Valor Total:</span>
+                            <span class="text-2xl font-black text-[#7a1b24]">R$ {{ pedido.valor_total }}</span>
+                        </div>
+
+                        {% if pedido.qr_code_pix %}
+                        <p class="text-xs text-orange-700 font-bold mb-3">✅ PIX Copia e Cola Gerado:</p>
+                        <div x-data="{ copiado: false }">
+                            <button type="button"
+                                @click="navigator.clipboard.writeText('{{ pedido.qr_code_pix }}'); copiado = true; setTimeout(() => copiado = false, 2000)"
+                                class="w-full bg-white border-2 border-yellow-400 text-yellow-800 font-black uppercase tracking-widest py-3 rounded-xl hover:bg-yellow-50 transition-colors shadow-sm text-xs flex items-center justify-center gap-2">
+                                <span x-show="!copiado">📋 Copiar Código PIX</span>
+                                <span x-show="copiado" x-cloak>✅ Copiado!</span>
+                            </button>
+                        </div>
+                        {% else %}
+                        <p class="text-xs text-orange-700/80 font-medium">
+                            O código de pagamento está a ser processado. Atualize a página em instantes.
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <button
+                        class="w-full bg-yellow-400 text-yellow-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-yellow-500 transition-colors shadow-md text-sm mt-auto">
+                        💲 Pagar Agora
+                    </button>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% for inscricao in inscricoes %}
+                <div
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-green-500 hover:shadow-md transition-shadow">
+                    <div
                         class="absolute top-0 right-0 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Pagamento Aprovado
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Confirmado
                     </div>
 
                     <div class="mb-6 mt-2">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Passaporte Oficial
-                        </p>
-                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">Combo Completo</h3>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ingresso #{{
+                            inscricao.codigo_ingresso }}</p>
+                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">Acesso Evento</h3>
                     </div>
 
                     <div class="bg-gray-50 rounded-xl p-4 mb-6 flex-grow border border-gray-100">
                         <div class="flex items-start gap-3 mb-4">
                             <span class="text-xl">📅</span>
                             <div>
-                                <p class="text-xs font-black text-slate-700 uppercase">Acesso aos 2 Dias</p>
-                                <p class="text-xs text-gray-500">28 e 29 de Agosto - IFMG Bambuí</p>
+                                <p class="text-xs font-black text-slate-700 uppercase">Confirmado</p>
+                                <p class="text-xs text-gray-500">Apresente este ingresso na entrada</p>
                             </div>
                         </div>
+                        {% if inscricao.minicurso %}
                         <div class="flex items-start gap-3">
                             <span class="text-xl">🎯</span>
                             <div>
-                                <p class="text-xs font-black text-[#7a1b24] uppercase">Minicurso Escolhido</p>
-                                <p class="text-xs text-gray-500 font-medium">Qualidade do Leite na Prática</p>
+                                <p class="text-xs font-black text-[#7a1b24] uppercase">Minicurso</p>
+                                <p class="text-xs text-gray-500 font-medium">{{ inscricao.minicurso.titulo }}</p>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <button
-                        class="w-full bg-slate-800 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-slate-700 transition-colors shadow-md text-xs md:text-sm flex items-center justify-center gap-2">
-                        <span>📱</span> Exibir QR Code
+                        class="w-full bg-slate-800 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-slate-700 transition-colors shadow-md text-xs md:text-sm">
+                        📱 Exibir QR Code
                     </button>
                 </div>
-
-                <div
-                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-yellow-400 hover:shadow-md transition-shadow">
-
-                    <div
-                        class="absolute top-0 right-0 bg-yellow-100 text-yellow-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-yellow-500"></span> Aguardando Pagamento
-                    </div>
-
-                    <div class="mb-6 mt-2">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pedido #1024</p>
-                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">Apenas Minicurso</h3>
-                    </div>
-
-                    <div class="bg-orange-50 rounded-xl p-4 mb-6 flex-grow border border-orange-100">
-                        <div class="flex items-center justify-between mb-3 border-b border-orange-200/50 pb-3">
-                            <span class="text-xs font-black text-orange-800 uppercase">Valor do Pedido:</span>
-                            <span class="text-xl font-black text-[#7a1b24]">R$ 85,00</span>
-                        </div>
-                        <p class="text-xs text-orange-700/80 font-medium leading-relaxed">
-                            Seu pedido está reservado! Efetue o pagamento via PIX para garantir sua vaga antes que a
-                            reserva expire.
-                        </p>
-                    </div>
-
-                    <button
-                        class="w-full bg-yellow-400 text-yellow-900 font-black uppercase tracking-widest py-4 rounded-xl hover:bg-yellow-500 transition-colors shadow-md text-xs md:text-sm flex items-center justify-center gap-2">
-                        <span>💲</span> Efetuar Pagamento
-                    </button>
-                </div>
+                {% endfor %}
 
             </div>
 
+            {% if not pedidos and not inscricoes %}
             <div
-                class="hidden bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto mt-8">
+                class="bg-white rounded-[2rem] p-12 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto mt-8">
                 <div class="text-6xl mb-6 opacity-50">🎫</div>
-                <h3 class="text-2xl font-black text-slate-800 fonte-agro mb-2">Você ainda não tem ingressos</h3>
-                <p class="text-gray-500 font-medium mb-8">Não fique de fora do maior evento agropecuário do IFMG.</p>
+                <h3 class="text-2xl font-black text-slate-800 fonte-agro mb-2">Ainda não tem ingressos</h3>
+                <p class="text-gray-500 font-medium mb-8">Garanta a sua vaga no XI Dia do Leite.</p>
                 <a href="{% url 'comprar_ingressos' %}"
-                    class="inline-block bg-[#7a1b24] text-white font-black uppercase tracking-widest px-8 py-4 rounded-full hover:-translate-y-1 hover:shadow-xl shadow-red-900/30 transition-all text-xs">
-                    Comprar Meu Ingresso
+                    class="inline-block bg-[#7a1b24] text-white font-black uppercase tracking-widest px-8 py-4 rounded-full hover:-translate-y-1 hover:shadow-xl transition-all text-xs">
+                    Comprar Ingressos
                 </a>
             </div>
+            {% endif %}
 
         </div>
 
