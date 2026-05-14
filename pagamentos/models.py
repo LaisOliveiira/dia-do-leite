@@ -39,17 +39,16 @@ class Pedido(models.Model):
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pacote = models.CharField(max_length=20, choices=PACOTE_CHOICES)
-    
-    # Campo obrigatório se a pessoa escolher "Minicurso" ou "Combo"
     minicurso_selecionado = models.ForeignKey(Evento, on_delete=models.SET_NULL, null=True, blank=True)
-    
     valor_total = models.DecimalField(max_digits=8, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
-    
-    # Dados para a futura Integração PicPay
     codigo_transacao = models.CharField(max_length=100, blank=True, null=True, unique=True)
     link_pagamento = models.URLField(blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
+    
+    # NOVOS CAMPOS DO MERCADO PAGO
+    qr_code_pix = models.TextField(blank=True, null=True)
+    id_transacao_mp = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.usuario.first_name} - {self.get_pacote_display()}"

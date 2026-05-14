@@ -30,7 +30,7 @@
 
         <form method="POST" action="{% url 'comprar_ingressos' %}" class="w-full relative">
             {% csrf_token %}
-            <input type="hidden" name="pacote" x-model="pacoteSelecionado">
+            <input type="hidden" name="pacote" :value="pacoteSelecionado">
 
             <div x-show="step === 1" x-transition>
 
@@ -98,7 +98,8 @@
                             <span class="text-4xl font-black text-slate-800 tracking-tighter">55,00</span>
                         </div>
                         <div class="mt-auto z-10">
-                            <button type="button" @click="pacoteSelecionado = 'palestras'; $el.closest('form').submit()"
+                            <button type="button"
+                                @click="pacoteSelecionado = 'palestras'; $nextTick(() => { $el.closest('form').submit() })"
                                 :disabled="jaTemPalestra"
                                 class="w-full bg-gray-100 text-slate-800 font-black uppercase tracking-widest py-4 rounded-full hover:bg-gray-200 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="jaTemPalestra">Já Adquirido</span>
