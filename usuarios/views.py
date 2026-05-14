@@ -52,21 +52,19 @@ def cadastro_view(request):
             username=email, email=email, password=senha, 
             first_name=nome, cpf=cpf, telefone=telefone, perfil='cliente'
         )
-        usuario.is_active = False 
+        
+        # O ALINHAMENTO CORRETO AQUI (Mesma linha vertical do usuario = ...)
+        usuario.is_active = True 
         usuario.save()
 
-        # Agora é o serviço que trata do e-mail
-        enviou = enviar_email_ativacao(request, usuario)
+        # Comentado para não enviar e-mail nos testes
+        # enviou = enviar_email_ativacao(request, usuario)
         
-        if enviou:
-            messages.success(request, 'Cadastro realizado! Verifique o link de ativação no seu e-mail.')
-        else:
-            messages.error(request, 'Erro ao enviar e-mail de ativação. Contacte o suporte.')
+        messages.success(request, 'Conta de teste criada e ativada com sucesso! Já pode fazer o login.')
 
         return redirect('login')
         
     return render(request, 'usuarios/cadastro.html')
-
 def ativar_conta_view(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))

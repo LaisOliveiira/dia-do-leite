@@ -1,135 +1,192 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<style>
-    .bg-dots-light {
-        background-color: #fcfbfb;
-        background-image: radial-gradient(rgba(117, 21, 22, 0.08) 1.5px, transparent 1.5px);
-        background-size: 24px 24px;
-    }
+<section class="bg-dots-light min-h-screen pt-12 pb-10 flex flex-col items-center" x-data="{ 
+            loteAtual: 'promocional', 
+            pacoteSelecionado: '', 
+            step: 1,
+            jaTemMini: {{ ja_tem_minicurso|yesno:'true,false' }},
+            jaTemPalestra: {{ ja_tem_palestras|yesno:'true,false' }}
+         }">
+    <div class="container mx-auto px-4 max-w-6xl">
 
-    .fonte-agro {
-        font-family: 'Merriweather', serif;
-    }
-
-    .radio-custom input[type="radio"] {
-        display: none;
-    }
-
-    .card-disabled {
-        opacity: 0.6;
-        filter: grayscale(0.8);
-        cursor: not-allowed !important;
-    }
-</style>
-
-<div class="min-h-screen bg-dots-light py-12" x-data="{ 
-        pacoteSelecionado: '', 
-        jaTemPalestra: {{ ja_tem_palestras|yesno:'true,false' }},
-        jaTemMini: {{ ja_tem_minicurso|yesno:'true,false' }}
-     }">
-
-    <div class="container mx-auto px-4 max-w-4xl">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-black text-slate-800 fonte-agro mb-4">Loja Oficial</h1>
-            <p class="text-gray-500 font-medium">Selecione seu ingresso abaixo.</p>
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight fonte-agro mb-0">
+                    Ingressos Oficiais
+                </h1>
+                <p class="text-gray-500 font-medium text-sm">
+                    Garanta sua vaga no maior evento agropecuário do IFMG.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'painel' %}"
+                    class="flex items-center gap-2 bg-white border-2 border-[#7a1b24] text-[#7a1b24] px-5 py-2.5 rounded-full font-bold hover:bg-red-50 transition-colors shadow-sm text-sm">
+                    <span>🎫</span> Ver Meus Ingressos
+                </a>
+            </div>
         </div>
 
-        <form method="POST" action="{% url 'comprar_ingressos' %}" class="space-y-8">
+        <form method="POST" action="{% url 'comprar_ingressos' %}" class="w-full relative">
             {% csrf_token %}
+            <input type="hidden" name="pacote" x-model="pacoteSelecionado">
 
-            <div class="grid md:grid-cols-3 gap-6">
+            <div x-show="step === 1" x-transition>
 
-                <label class="radio-custom relative group transition-all"
-                    :class="jaTemPalestra ? 'card-disabled' : 'cursor-pointer'"
-                    @click="if(!jaTemPalestra) pacoteSelecionado = 'palestras'">
-                    <input type="radio" name="pacote" value="palestras" x-model="pacoteSelecionado"
-                        :disabled="jaTemPalestra">
-                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
-                        :class="pacoteSelecionado === 'palestras' ? 'border-gebov shadow-lg' : 'border-gray-100'">
-                        <h3 class="text-xl font-black text-slate-800 mb-2">Palestras</h3>
-                        <p class="text-xs text-gray-500 mb-6">Acesso total às palestras do evento.</p>
-                        <div class="pt-4 border-t">
-                            {% if ja_tem_palestras %}
-                            <span class="text-[10px] font-black text-green-600 uppercase">Já Adquirido ✓</span>
-                            {% else %}
-                            <p class="text-2xl font-black text-slate-800">R$ 50,00</p>
-                            {% endif %}
+                <div class="flex justify-center mb-6">
+                    <div class="bg-gray-100 p-1.5 rounded-full inline-flex">
+                        <button type="button" @click="loteAtual = 'promocional'"
+                            :class="loteAtual === 'promocional' ? 'bg-white text-slate-800 shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                            class="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all">
+                            Lote Promocional
+                        </button>
+                        <button type="button" @click="loteAtual = 'normal'"
+                            :class="loteAtual === 'normal' ? 'bg-white text-slate-800 shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+                            class="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all">
+                            Lote Normal
+                        </button>
+                    </div>
+                </div>
+
+                <div x-show="loteAtual === 'promocional'" class="max-w-xl mx-auto w-full">
+                    <div
+                        class="bg-[#7a1b24] rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative border-4 border-white transform hover:-translate-y-2 transition-transform">
+
+                        <div
+                            class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-bl-2xl">
+                            🔥 Lote Promocional
+                        </div>
+
+                        <div class="mb-6 mt-4">
+                            <h3 class="text-3xl font-black text-white fonte-agro mb-1">Combo Passaporte</h3>
+                            <p class="text-red-200 text-sm">Acesso completo às Palestras + 1 Minicurso.</p>
+                        </div>
+
+                        <div class="mb-8 text-white flex items-end gap-2">
+                            <span class="text-red-200 font-bold text-2xl pb-1">R$</span>
+                            <span class="text-6xl font-black tracking-tighter">115,00</span>
+                        </div>
+
+                        <ul class="space-y-4 mb-10 text-red-50 font-medium">
+                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Acesso aos
+                                2 dias de evento</li>
+                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Todas as
+                                Palestras e Debates</li>
+                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Vaga
+                                garantida em 1 Minicurso</li>
+                        </ul>
+
+                        <button type="button" @click="pacoteSelecionado = 'combo'; step = 2"
+                            :disabled="jaTemMini || jaTemPalestra"
+                            class="w-full bg-white text-[#7a1b24] font-black uppercase tracking-widest py-5 rounded-full hover:bg-gray-50 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg">
+                            <span x-show="jaTemMini || jaTemPalestra">Você já possui ingressos</span>
+                            <span x-show="!(jaTemMini || jaTemPalestra)">Comprar Agora</span>
+                        </button>
+                    </div>
+                </div>
+                <div x-show="loteAtual === 'normal'" class="grid grid-cols-1 md:grid-cols-3 gap-8"
+                    style="display: none;">
+
+                    <div class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm flex flex-col relative">
+                        <div class="mb-6 z-10">
+                            <h3 class="text-xl font-black text-slate-800 fonte-agro mb-1">Apenas Palestras</h3>
+                            <p class="text-gray-400 text-xs">Acesso ao ciclo de palestras (Dia 28).</p>
+                        </div>
+                        <div class="mb-8 z-10">
+                            <span class="text-gray-400 font-bold text-lg">R$</span>
+                            <span class="text-4xl font-black text-slate-800 tracking-tighter">55,00</span>
+                        </div>
+                        <div class="mt-auto z-10">
+                            <button type="button" @click="pacoteSelecionado = 'palestras'; $el.closest('form').submit()"
+                                :disabled="jaTemPalestra"
+                                class="w-full bg-gray-100 text-slate-800 font-black uppercase tracking-widest py-4 rounded-full hover:bg-gray-200 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="jaTemPalestra">Já Adquirido</span>
+                                <span x-show="!jaTemPalestra">Comprar Palestras</span>
+                            </button>
                         </div>
                     </div>
-                </label>
 
-                <label class="radio-custom relative group transition-all"
-                    :class="(jaTemPalestra || jaTemMini) ? 'card-disabled' : 'cursor-pointer'"
-                    @click="if(!jaTemPalestra && !jaTemMini) pacoteSelecionado = 'combo'">
-                    <input type="radio" name="pacote" value="combo" x-model="pacoteSelecionado"
-                        :disabled="jaTemPalestra || jaTemMini">
-                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                        <span
-                            class="bg-gebov text-white text-[8px] font-black uppercase px-3 py-1 rounded-full shadow-lg">Combo
-                            VIP</span>
-                    </div>
-                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
-                        :class="pacoteSelecionado === 'combo' ? 'border-gebov shadow-2xl scale-105' : 'border-gray-100'">
-                        <h3 class="text-xl font-black text-slate-800 mb-2">Combo</h3>
-                        <p class="text-xs text-gray-500 mb-6">Palestras + 1 Minicurso com desconto.</p>
-                        <div class="pt-4 border-t">
-                            {% if ja_tem_palestras or ja_tem_minicurso %}
-                            <span class="text-[10px] font-black text-gebov uppercase">Indisponível</span>
-                            {% else %}
-                            <p class="text-2xl font-black text-gebov">R$ 80,00</p>
-                            {% endif %}
+                    <div
+                        class="bg-[#7a1b24] rounded-[2rem] p-8 shadow-xl border-2 border-white flex flex-col relative transform md:scale-105 z-10">
+                        <div
+                            class="absolute top-0 inset-x-0 bg-yellow-400 text-yellow-900 text-[9px] font-black uppercase tracking-widest py-1 text-center">
+                            A Opção Mais Completa
+                        </div>
+                        <div class="mb-6 mt-4 z-10">
+                            <h3 class="text-2xl font-black text-white fonte-agro mb-1">Combo Completo</h3>
+                            <p class="text-red-200 text-xs">Palestras + Minicurso.</p>
+                        </div>
+                        <div class="mb-8 text-white z-10">
+                            <span class="text-red-200 font-bold text-lg">R$</span>
+                            <span class="text-5xl font-black tracking-tighter">130,00</span>
+                        </div>
+                        <div class="mt-auto z-10">
+                            <button type="button" @click="pacoteSelecionado = 'combo'; step = 2"
+                                :disabled="jaTemMini || jaTemPalestra"
+                                class="w-full bg-white text-[#7a1b24] font-black uppercase tracking-widest py-4 rounded-full hover:bg-gray-50 transition-colors shadow-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="jaTemMini || jaTemPalestra">Indisponível</span>
+                                <span x-show="!(jaTemMini || jaTemPalestra)">Comprar Combo</span>
+                            </button>
                         </div>
                     </div>
-                </label>
 
-                <label class="radio-custom relative group transition-all"
-                    :class="jaTemMini ? 'card-disabled' : 'cursor-pointer'"
-                    @click="if(!jaTemMini) pacoteSelecionado = 'minicurso'">
-                    <input type="radio" name="pacote" value="minicurso" x-model="pacoteSelecionado"
-                        :disabled="jaTemMini">
-                    <div class="h-full bg-white rounded-3xl p-8 border-2 transition-all duration-300"
-                        :class="pacoteSelecionado === 'minicurso' ? 'border-gebov shadow-lg' : 'border-gray-100'">
-                        <h3 class="text-xl font-black text-slate-800 mb-2">Minicurso</h3>
-                        <p class="text-xs text-gray-500 mb-6">Apenas 1 minicurso prático avulso.</p>
-                        <div class="pt-4 border-t">
-                            {% if ja_tem_minicurso %}
-                            <span class="text-[10px] font-black text-gebov uppercase">Limite Atingido</span>
-                            {% else %}
-                            <p class="text-2xl font-black text-slate-800">R$ 50,00</p>
-                            {% endif %}
+                    <div class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm flex flex-col relative">
+                        <div class="mb-6 z-10">
+                            <h3 class="text-xl font-black text-slate-800 fonte-agro mb-1">Apenas Minicurso</h3>
+                            <p class="text-gray-400 text-xs">Foco na parte prática (Dia 29).</p>
+                        </div>
+                        <div class="mb-8 z-10">
+                            <span class="text-gray-400 font-bold text-lg">R$</span>
+                            <span class="text-4xl font-black text-slate-800 tracking-tighter">85,00</span>
+                        </div>
+                        <div class="mt-auto z-10">
+                            <button type="button" @click="pacoteSelecionado = 'minicurso'; step = 2"
+                                :disabled="jaTemMini"
+                                class="w-full bg-gray-100 text-slate-800 font-black uppercase tracking-widest py-4 rounded-full hover:bg-gray-200 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="jaTemMini">Limite Atingido</span>
+                                <span x-show="!jaTemMini">Comprar Minicurso</span>
+                            </button>
                         </div>
                     </div>
-                </label>
+
+                </div>
             </div>
 
-            <div x-show="(pacoteSelecionado === 'combo' || pacoteSelecionado === 'minicurso')" x-transition
-                class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mt-8">
-                <h4 class="font-black text-slate-800 mb-4">Selecione o Minicurso</h4>
-                <select name="minicurso_id"
-                    class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 outline-none">
-                    <option value="" disabled selected>Escolha um minicurso...</option>
+            <div x-show="step === 2" x-transition style="display: none;" class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-braba border border-gray-100 text-center">
 
-                    {% for curso in minicursos %}
-                    {% if curso.vagas > 0 %}
-                    <option value="{{ curso.id }}">{{ curso.titulo }} ({{ curso.vagas }} vagas disponíveis)</option>
-                    {% else %}
-                    <option value="" disabled>{{ curso.titulo }} (ESGOTADO - 0 Vagas)</option>
-                    {% endif %}
-                    {% empty %}
-                    <option value="" disabled>Nenhum minicurso cadastrado no sistema.</option>
-                    {% endfor %}
+                    <button type="button" @click="step = 1; pacoteSelecionado = ''"
+                        class="text-gray-400 text-sm font-bold uppercase tracking-widest hover:text-[#7a1b24] mb-8">
+                        ← Voltar aos pacotes
+                    </button>
 
-                </select>
+                    <h2 class="text-3xl font-black text-slate-800 fonte-agro mb-4">Escolha seu Minicurso</h2>
+                    <p class="text-gray-500 mb-8">Para finalizar a compra do <span x-text="pacoteSelecionado"
+                            class="uppercase font-bold text-[#7a1b24]"></span>, selecione a turma desejada:</p>
+
+                    <select name="minicurso_id"
+                        class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-4 outline-none text-slate-700 font-medium mb-8 focus:border-[#7a1b24]">
+                        <option value="" disabled selected>Clique aqui para escolher a turma...</option>
+                        {% for curso in minicursos %}
+                        {% if curso.vagas > 0 %}
+                        <option value="{{ curso.id }}">{{ curso.titulo }} (Restam {{ curso.vagas }} vagas)</option>
+                        {% else %}
+                        <option value="" disabled>{{ curso.titulo }} (ESGOTADO)</option>
+                        {% endif %}
+                        {% empty %}
+                        <option value="" disabled>Nenhum minicurso cadastrado no momento.</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit"
+                        class="w-full bg-[#7a1b24] text-white font-black uppercase tracking-widest py-5 rounded-full shadow-xl shadow-red-900/30 hover:-translate-y-1 transition-all text-lg">
+                        Finalizar Pedido ✔
+                    </button>
+                </div>
             </div>
 
-            <div class="flex justify-end pt-8">
-                <button type="submit" x-show="pacoteSelecionado !== ''"
-                    class="bg-gebov text-white font-black uppercase tracking-widest text-[10px] px-12 py-5 rounded-full shadow-xl hover:bg-red-900 transition-all">
-                    Finalizar Pedido ➔
-                </button>
-            </div>
         </form>
     </div>
-</div>
+</section>
 {% endblock %}
