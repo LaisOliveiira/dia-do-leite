@@ -28,10 +28,22 @@
             </div>
         </div>
 
-        <form method="POST" action="{% url 'comprar_ingressos' %}" class="w-full relative">
+        <form method="POST" action="{% url 'comprar_ingressos' %}" enctype="multipart/form-data"
+            class="w-full relative">
             {% csrf_token %}
             <input type="hidden" name="pacote" :value="pacoteSelecionado">
 
+            <div class="max-w-xl mx-auto mb-8 bg-green-50 border-2 border-green-200 rounded-2xl p-6 shadow-sm">
+                <label for="comprovante_produtor"
+                    class="form-label font-black text-green-800 uppercase tracking-widest text-xs mb-2 block">
+                    🌾 É Produtor Rural? (Opcional)
+                </label>
+                <p class="text-green-700/80 text-xs font-medium mb-4">Anexe a sua carteirinha ou comprovativo. O pedido
+                    ficará em análise e não precisará de pagar agora.</p>
+                <input
+                    class="w-full bg-white border border-green-200 rounded-xl p-3 text-sm text-slate-700 outline-none focus:border-green-500"
+                    type="file" id="comprovante_produtor" name="comprovante_produtor" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
             <div x-show="step === 1" x-transition>
 
                 <div class="flex justify-center mb-6">

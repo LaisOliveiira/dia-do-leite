@@ -26,15 +26,16 @@ class Lote(models.Model):
 
 class Pedido(models.Model):
     PACOTE_CHOICES = (
-        ('palestras', 'Todas as Palestras (R$ 50,00)'),
-        ('minicurso', 'Apenas 1 Minicurso (R$ 50,00)'),
-        ('combo', 'Combo: Todas as Palestras + 1 Minicurso (R$ 80,00)'),
+        ('palestras', 'Palestras'),
+        ('minicurso', 'Minicurso Avulso'),
+        ('combo', 'Combo Completo (Palestras + Minicurso)'),
     )
     
     STATUS_CHOICES = (
         ('pendente', 'Aguardando Pagamento'),
         ('aprovado', 'Pagamento Aprovado'),
         ('recusado', 'Pagamento Recusado'),
+        ('em_analise', 'Em Análise'), # <-- NOVO STATUS AQUI
     )
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -46,9 +47,12 @@ class Pedido(models.Model):
     link_pagamento = models.URLField(blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     
-    # NOVOS CAMPOS DO MERCADO PAGO
+    # CAMPOS DO MERCADO PAGO
     qr_code_pix = models.TextField(blank=True, null=True)
     id_transacao_mp = models.CharField(max_length=255, blank=True, null=True)
+    
+    # <-- NOVO CAMPO PARA A FOTO DO PRODUTOR RURAL -->
+    comprovante_produtor = models.FileField(upload_to='comprovantes_produtor/', null=True, blank=True)
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.usuario.first_name} - {self.get_pacote_display()}"
