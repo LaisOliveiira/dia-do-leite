@@ -5,6 +5,9 @@ from .models import Evento, Inscricao
 from .models import Evento, TipoEvento
 from .models import Edicao
 import requests
+from django.http import JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
+import json
 
 @login_required(login_url='/auth/login/')
 def criar_evento_view(request):
@@ -93,3 +96,43 @@ def lista_edicoes(request):
     # O prefetch_related torna o carregamento das fotos muito mais rápido
     edicoes = Edicao.objects.prefetch_related('fotos').all()
     return render(request, 'eventos/edicoes.html', {'edicoes': edicoes})
+
+
+@staff_member_required 
+def portaria_checkin(request):
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            codigo = dados.get('codigo_ingresso')
+
+            if not codigo:
+                return JsonResponse({'status': 'erro', 'mensagem': 'Nenhum código lido.'})
+
+            # Vai ao banco de dados procurar o ingresso
+            inscricao = Inscricao.objects.filter(codigo_ingresso=codigo).first()
+
+            # 1. Se o "esperto" inventou um código ou trouxe de outro evento
+            if not inscricao:
+                return JsonResponse({'status': 'erro', 'mensagem': '❌ INGRESSO INVÁLIDO OU INEXISTENTE!'})
+
+            # 2. Se for o "amigo" com o print (O ingresso já foi validado antes)
+            if inscricao.presenca_confirmada:
+                return JsonResponse({
+                    'status': 'aviso',
+                    'mensagem': f'⚠️ ALERTA: Ingresso já foi utilizado por {inscricao.usuario.first_name}!'
+                })
+
+            # 3. Tudo certo! É a primeira vez que o ingresso passa na porta.
+            inscricao.presenca_confirmada = True
+            inscricao.save()
+
+            return JsonResponse({
+                'status': 'sucesso',
+                'mensagem': f'✅ ACESSO LIBERADO! Bem-vindo(a), {inscricao.usuario.first_name}!'
+            })
+
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': 'Erro interno no leitor.'})
+
+    # Se ele apenas aceder à página, carrega a câmera
+    return render(request, 'eventos/portaria.html')

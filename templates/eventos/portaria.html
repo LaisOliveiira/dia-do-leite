@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portaria - Leitor de QR Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-slate-800 rounded-3xl p-6 shadow-2xl text-center border border-slate-700">
+        <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-widest">Portaria Digital</h1>
+        <p class="text-slate-400 text-sm mb-6">Aponte a câmera para o QR Code do aluno</p>
+
+        <div id="reader" class="w-full bg-black rounded-xl overflow-hidden border-4 border-slate-700 mb-6"></div>
+
+        <div id="resultado" class="hidden p-4 rounded-xl text-lg font-black uppercase tracking-widest animate-pulse">
+        </div>
+
+        <button onclick="reiniciarScanner()" class="mt-6 text-slate-400 hover:text-white underline text-sm">
+            Reiniciar Leitor
+        </button>
+    </div>
+
+    <script>
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+        let escaneando = true;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (!escaneando) return;
+            escaneando = false; // Trava o leitor para não ler 20x num segundo
+
+            html5QrcodeScanner.pause(true); // Pausa a câmera
+
+            const divResultado = document.getElementById('resultado');
+            divResultado.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'bg-yellow-500');
+            divResultado.innerHTML = "Processando...";
+            divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-blue-500 text-white mt-4";
+
+            // Dispara o código para o nosso views.py
+            fetch("{% url 'portaria_checkin' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ codigo_ingresso: decodedText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'sucesso') {
+                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-green-500 text-white mt-4";
+                    } else if (data.status === 'aviso') {
+                        // O Amigo com o Print cai aqui!
+                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-yellow-500 text-yellow-900 mt-4";
+                    } else {
+                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-red-600 text-white mt-4";
+                    }
+                    divResultado.innerHTML = data.mensagem;
+
+                    // Reinicia automaticamente após 3 segundos para o próximo aluno
+                    setTimeout(reiniciarScanner, 3000);
+                });
+        }
+
+        function reiniciarScanner() {
+            document.getElementById('resultado').classList.add('hidden');
+            escaneando = true;
+            html5QrcodeScanner.resume();
+        }
+
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+
+</html>

@@ -7,8 +7,6 @@ import mercadopago
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Pedido
-from eventos.models import Inscricao
 from django.conf import settings
 
 @login_required
@@ -65,8 +63,17 @@ def comprar_ingressos(request):
             status='pendente'
         )
 
+        # --- INTERCETOR DO PRODUTOR RURAL ---
+        comprovante = request.FILES.get('comprovante_produtor')
+        if comprovante:
+            pedido.comprovante_produtor = comprovante
+            pedido.status = 'em_analise' # Muda o status
+            pedido.save()
+            messages.success(request, 'Comprovativo enviado! O seu pedido está em análise pela organização.')
+            return redirect('painel') # Vai para o painel SEM passar pelo Mercado Pago
+        # ------------------------------------
+
         try:
-            # Puxa a chave de forma 100% segura e invisível
             sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN) 
             
             payment_data = {
@@ -103,9 +110,6 @@ def comprar_ingressos(request):
     
 @csrf_exempt
 def mercado_pago_webhook(request):
-    """
-    URL secreta que o Mercado Pago acessa para nos avisar sobre pagamentos.
-    """
     if request.method == 'POST':
         try:
             dados = json.loads(request.body)
@@ -118,40 +122,30 @@ def mercado_pago_webhook(request):
                     
                     if pedido:
                         import mercadopago
-                        sdk = mercadopago.SDK("settings.MERCADO_PAGO_ACCESS_TOKEN" )
+                        sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
                         
-                        # Pergunta ao Mercado Pago o status real desta transação
                         payment_info = sdk.payment().get(id_pagamento_mp)
                         
                         if payment_info["status"] == 200:
                             status_pagamento = payment_info["response"]["status"]
                             
-                            # Se o pagamento foi aprovado e o pedido ainda está pendente
                             if status_pagamento == "approved" and pedido.status != "aprovado":
-                                
-                                # 1. Atualiza o Pedido
                                 pedido.status = "aprovado"
                                 pedido.save()
                                 
-                                # 2. LÓGICA DE CRIAÇÃO DOS INGRESSOS (INSCRIÇÕES)
-                                # Se comprou palestras ou combo: libera acesso a todas as palestras
                                 if pedido.pacote in ['palestras', 'combo']:
                                     palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
                                     for palestra in palestras:
                                         Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
                                         
-                                # Se comprou minicurso ou combo: libera o minicurso e desconta a vaga
                                 if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
                                     inscricao, created = Inscricao.objects.get_or_create(
                                         usuario=pedido.usuario, 
                                         evento=pedido.minicurso_selecionado
                                     )
-                                    # Desconta 1 vaga se a inscrição acabou de ser criada
                                     if created and pedido.minicurso_selecionado.vagas > 0:
                                         pedido.minicurso_selecionado.vagas -= 1
                                         pedido.minicurso_selecionado.save()
-                                        
-                                print(f"✅ SUCESSO! Pedido #{pedido.id} aprovado e ingressos gerados!")
             
             return JsonResponse({'status': 'sucesso'}, status=200)
             
