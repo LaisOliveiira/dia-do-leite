@@ -4,6 +4,12 @@ from django.contrib import messages
 from eventos.models import Evento, Inscricao
 from .models import Pedido, Lote
 import mercadopago
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Pedido
+from eventos.models import Inscricao
+from django.conf import settings
 
 @login_required
 def comprar_ingressos(request):
@@ -60,7 +66,9 @@ def comprar_ingressos(request):
         )
 
         try:
-            sdk = mercadopago.SDK("TEST-ACCESS-TOKEN") 
+            # Puxa a chave de forma 100% segura e invisível
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN) 
+            
             payment_data = {
                 "transaction_amount": float(valor),
                 "description": f"Inscrição Dia do Leite - Pedido #{pedido.id}",
@@ -71,6 +79,7 @@ def comprar_ingressos(request):
                     "identification": {"type": "CPF", "number": request.user.cpf}
                 }
             }
+            
             payment_response = sdk.payment().create(payment_data)
             payment = payment_response["response"]
 
@@ -79,7 +88,10 @@ def comprar_ingressos(request):
                 pedido.id_transacao_mp = payment["id"]
                 pedido.save()
                 messages.success(request, 'PIX gerado! Efetue o pagamento no painel.')
-        except Exception:
+            else:
+                messages.warning(request, 'Pedido reservado! O PIX será gerado em instantes.')
+                
+        except Exception as e:
             messages.warning(request, 'Pedido reservado! O PIX será gerado em instantes.')
 
         return redirect('painel')
@@ -88,3 +100,62 @@ def comprar_ingressos(request):
         'minicursos': minicursos, 'ja_tem_minicurso': ja_tem_minicurso,
         'ja_tem_palestras': ja_tem_palestras, 'lote': lote_ativo 
     })
+    
+@csrf_exempt
+def mercado_pago_webhook(request):
+    """
+    URL secreta que o Mercado Pago acessa para nos avisar sobre pagamentos.
+    """
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            
+            if dados.get('action') == 'payment.updated' or dados.get('type') == 'payment':
+                id_pagamento_mp = dados.get('data', {}).get('id')
+                
+                if id_pagamento_mp:
+                    pedido = Pedido.objects.filter(id_transacao_mp=id_pagamento_mp).first()
+                    
+                    if pedido:
+                        import mercadopago
+                        sdk = mercadopago.SDK("settings.MERCADO_PAGO_ACCESS_TOKEN" )
+                        
+                        # Pergunta ao Mercado Pago o status real desta transação
+                        payment_info = sdk.payment().get(id_pagamento_mp)
+                        
+                        if payment_info["status"] == 200:
+                            status_pagamento = payment_info["response"]["status"]
+                            
+                            # Se o pagamento foi aprovado e o pedido ainda está pendente
+                            if status_pagamento == "approved" and pedido.status != "aprovado":
+                                
+                                # 1. Atualiza o Pedido
+                                pedido.status = "aprovado"
+                                pedido.save()
+                                
+                                # 2. LÓGICA DE CRIAÇÃO DOS INGRESSOS (INSCRIÇÕES)
+                                # Se comprou palestras ou combo: libera acesso a todas as palestras
+                                if pedido.pacote in ['palestras', 'combo']:
+                                    palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+                                    for palestra in palestras:
+                                        Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
+                                        
+                                # Se comprou minicurso ou combo: libera o minicurso e desconta a vaga
+                                if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
+                                    inscricao, created = Inscricao.objects.get_or_create(
+                                        usuario=pedido.usuario, 
+                                        evento=pedido.minicurso_selecionado
+                                    )
+                                    # Desconta 1 vaga se a inscrição acabou de ser criada
+                                    if created and pedido.minicurso_selecionado.vagas > 0:
+                                        pedido.minicurso_selecionado.vagas -= 1
+                                        pedido.minicurso_selecionado.save()
+                                        
+                                print(f"✅ SUCESSO! Pedido #{pedido.id} aprovado e ingressos gerados!")
+            
+            return JsonResponse({'status': 'sucesso'}, status=200)
+            
+        except Exception as e:
+            return JsonResponse({'erro': str(e)}, status=400)
+            
+    return JsonResponse({'erro': 'Método não permitido'}, status=405)
