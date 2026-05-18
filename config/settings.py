@@ -1,11 +1,8 @@
 from decouple import config, Csv
 from pathlib import Path
-from decouple import config
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from decouple import config
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,6 +129,8 @@ MEDIA_URL = '/media/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Configurações de Media (Uploads do usuário, como as fotos da galeria)
 MEDIA_URL = '/media/'
