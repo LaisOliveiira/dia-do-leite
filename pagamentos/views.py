@@ -8,6 +8,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.db import transaction
 
 @login_required
 def comprar_ingressos(request):
@@ -24,14 +25,29 @@ def comprar_ingressos(request):
     if request.method == 'POST':
         pacote_escolhido = request.POST.get('pacote')
         minicurso_id = request.POST.get('minicurso_id')
+        lote_tipo = request.POST.get('lote_tipo') # 👈 AGORA SIM ESTAMOS A PUXAR O LOTE!
         
         valor = 0.00
-        if pacote_escolhido == 'palestras':
+        
+        # --- LÓGICA DE PREÇOS E LIMITE DE 20 VAGAS ---
+        if pacote_escolhido == 'combo':
+            if lote_tipo == 'promocional':
+                # Conta quantos pedidos promocionais de 115.00 já foram gerados
+                vendas_promo = Pedido.objects.filter(pacote='combo', valor_total=115.00).count()
+                
+                if vendas_promo >= 20:
+                    messages.error(request, 'O Lote Promocional de 20 ingressos já esgotou! Aguarde a abertura do Lote Normal.')
+                    return redirect('comprar_ingressos')
+                
+                valor = 115.00 # Força o valor promocional
+            else:
+                valor = lote_ativo.preco_combo # Puxa os 130 do banco de dados
+                
+        elif pacote_escolhido == 'palestras':
             valor = lote_ativo.preco_palestras
         elif pacote_escolhido == 'minicurso':
             valor = lote_ativo.preco_minicurso
-        elif pacote_escolhido == 'combo':
-            valor = lote_ativo.preco_combo
+        # ----------------------------------------------
         
         if pacote_escolhido == 'palestras' and ja_tem_palestras:
             messages.error(request, 'Você já possui acesso às palestras.')
@@ -63,7 +79,7 @@ def comprar_ingressos(request):
             status='pendente'
         )
 
-        # --- INTERCETOR DO PRODUTOR RURAL ---
+        # --- INTERCEPTOR DO PRODUTOR RURAL ---
         comprovante = request.FILES.get('comprovante_produtor')
         if comprovante:
             pedido.comprovante_produtor = comprovante
@@ -130,22 +146,26 @@ def mercado_pago_webhook(request):
                             status_pagamento = payment_info["response"]["status"]
                             
                             if status_pagamento == "approved" and pedido.status != "aprovado":
-                                pedido.status = "aprovado"
-                                pedido.save()
                                 
-                                if pedido.pacote in ['palestras', 'combo']:
-                                    palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
-                                    for palestra in palestras:
-                                        Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
-                                        
-                                if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
-                                    inscricao, created = Inscricao.objects.get_or_create(
-                                        usuario=pedido.usuario, 
-                                        evento=pedido.minicurso_selecionado
-                                    )
-                                    if created and pedido.minicurso_selecionado.vagas > 0:
-                                        pedido.minicurso_selecionado.vagas -= 1
-                                        pedido.minicurso_selecionado.save()
+                                # --- MAGIA DE PROTEÇÃO: TRANSACTION ATOMIC ---
+                                with transaction.atomic():
+                                    pedido.status = "aprovado"
+                                    pedido.save()
+                                    
+                                    if pedido.pacote in ['palestras', 'combo']:
+                                        palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+                                        for palestra in palestras:
+                                            Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
+                                            
+                                    if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
+                                        inscricao, created = Inscricao.objects.get_or_create(
+                                            usuario=pedido.usuario, 
+                                            evento=pedido.minicurso_selecionado
+                                        )
+                                        if created and pedido.minicurso_selecionado.vagas > 0:
+                                            pedido.minicurso_selecionado.vagas -= 1
+                                            pedido.minicurso_selecionado.save()
+                                # ---------------------------------------------
             
             return JsonResponse({'status': 'sucesso'}, status=200)
             

@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django.contrib import messages
 from .models import Pedido, Lote
 from eventos.models import Evento, Inscricao
+from django.db import transaction
 
 @admin.register(Lote)
 class LoteAdmin(admin.ModelAdmin):
@@ -22,7 +23,6 @@ class PedidoAdmin(admin.ModelAdmin):
                 '<a href="{}" target="_blank" style="background-color: #2563eb; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-decoration: none; text-transform: uppercase; font-size: 10px;">📄 Ver Foto</a>', 
                 obj.comprovante_produtor.url
             )
-        # O erro estava aqui! Adicionámos o {} e passámos o 'Nenhum' como argumento.
         return format_html('<span style="color: #94a3b8;">{}</span>', 'Nenhum')
     
     ver_comprovante.short_description = "Comprovativo"
@@ -33,26 +33,30 @@ class PedidoAdmin(admin.ModelAdmin):
         
         for pedido in queryset:
             if pedido.status != 'aprovado':
-                # 1. Muda o status
-                pedido.status = 'aprovado'
-                pedido.save()
                 
-                # 2. GERA OS INGRESSOS (Cópia da lógica do seu Webhook)
-                if pedido.pacote in ['palestras', 'combo']:
-                    palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
-                    for palestra in palestras:
-                        Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
-                
-                if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
-                    inscricao, created = Inscricao.objects.get_or_create(
-                        usuario=pedido.usuario, 
-                        evento=pedido.minicurso_selecionado
-                    )
-                    if created and pedido.minicurso_selecionado.vagas > 0:
-                        pedido.minicurso_selecionado.vagas -= 1
-                        pedido.minicurso_selecionado.save()
-                
-                pedidos_aprovados += 1
+                # --- MAGIA DE PROTEÇÃO AQUI ---
+                with transaction.atomic():
+                    # 1. Muda o status
+                    pedido.status = 'aprovado'
+                    pedido.save()
+                    
+                    # 2. GERA OS INGRESSOS
+                    if pedido.pacote in ['palestras', 'combo']:
+                        palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+                        for palestra in palestras:
+                            Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
+                    
+                    if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
+                        inscricao, created = Inscricao.objects.get_or_create(
+                            usuario=pedido.usuario, 
+                            evento=pedido.minicurso_selecionado
+                        )
+                        if created and pedido.minicurso_selecionado.vagas > 0:
+                            pedido.minicurso_selecionado.vagas -= 1
+                            pedido.minicurso_selecionado.save()
+                    
+                    pedidos_aprovados += 1
+                # ------------------------------
                 
         if pedidos_aprovados > 0:
             self.message_user(request, f"{pedidos_aprovados} pedido(s) foram APROVADOS e os ingressos foram gerados para os alunos!", messages.SUCCESS)
@@ -77,22 +81,25 @@ class PedidoAdmin(admin.ModelAdmin):
             # Se o organizador abriu o pedido e mudou o status para "Aprovado"
             if pedido_antigo.status != 'aprovado' and obj.status == 'aprovado':
                 
-                # GERA OS INGRESSOS AUTOMATICAMENTE!
-                if obj.pacote in ['palestras', 'combo']:
-                    palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
-                    for palestra in palestras:
-                        Inscricao.objects.get_or_create(usuario=obj.usuario, evento=palestra)
-                
-                if obj.pacote in ['minicurso', 'combo'] and obj.minicurso_selecionado:
-                    inscricao, created = Inscricao.objects.get_or_create(
-                        usuario=obj.usuario, 
-                        evento=obj.minicurso_selecionado
-                    )
-                    if created and obj.minicurso_selecionado.vagas > 0:
-                        obj.minicurso_selecionado.vagas -= 1
-                        obj.minicurso_selecionado.save()
-                        
-                messages.success(request, f"O pedido foi aprovado manualmente e os ingressos de {obj.usuario.first_name} foram gerados!")
+                # --- MAGIA DE PROTEÇÃO AQUI ---
+                with transaction.atomic():
+                    # GERA OS INGRESSOS AUTOMATICAMENTE!
+                    if obj.pacote in ['palestras', 'combo']:
+                        palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+                        for palestra in palestras:
+                            Inscricao.objects.get_or_create(usuario=obj.usuario, evento=palestra)
+                    
+                    if obj.pacote in ['minicurso', 'combo'] and obj.minicurso_selecionado:
+                        inscricao, created = Inscricao.objects.get_or_create(
+                            usuario=obj.usuario, 
+                            evento=obj.minicurso_selecionado
+                        )
+                        if created and obj.minicurso_selecionado.vagas > 0:
+                            obj.minicurso_selecionado.vagas -= 1
+                            obj.minicurso_selecionado.save()
+                            
+                    messages.success(request, f"O pedido foi aprovado manualmente e os ingressos de {obj.usuario.first_name} foram gerados!")
+                # ------------------------------
                 
         # Deixa o Django fazer o salvamento padrão no banco de dados
         super().save_model(request, obj, form, change)
