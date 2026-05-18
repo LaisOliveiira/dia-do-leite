@@ -7,12 +7,9 @@
 
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6 border-b border-gray-200 pb-6">
             <div>
-                <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight fonte-agro mb-2">
-                    Meu Painel
+                <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight fonte-agro mb-2">Meu Painel
                 </h1>
-                <p class="text-gray-500 font-medium">
-                    Gerencie seus ingressos e acesse seus certificados.
-                </p>
+                <p class="text-gray-500 font-medium">Gerencie seus ingressos e acesse seus certificados.</p>
             </div>
 
             <div class="flex bg-gray-100 p-1.5 rounded-full w-full md:w-auto overflow-x-auto">
@@ -38,20 +35,14 @@
 
                 {% if pedido.status|lower == 'pendente' %}
                 <div x-data="{ copiado: false }"
-                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-yellow-400 hover:shadow-md transition-shadow">
-
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
                     <div
                         class="absolute top-0 right-0 bg-yellow-100 text-yellow-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10">
-                        Aguardando Pagamento
-                    </div>
-
+                        Aguardando Pagamento</div>
                     <div class="mb-6 mt-4">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                            Pedido #{{ pedido.id }}
-                        </p>
-                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">
-                            {{ pedido.get_pacote_display }}
-                        </h3>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pedido #{{
+                            pedido.id }}</p>
+                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">{{ pedido.get_pacote_display }}</h3>
                     </div>
 
                     <div
@@ -69,15 +60,13 @@
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ pedido.qr_code_pix }}"
                                 alt="QR Code PIX" class="w-32 h-32 mb-1">
                         </div>
-
                         <p class="text-xs text-orange-700 font-bold mb-2">Ou use o Copia e Cola:</p>
                         <div
                             class="bg-white border-2 border-orange-200 p-3 rounded-lg flex items-center justify-between gap-2">
                             <span class="text-xs text-gray-500 truncate font-mono">{{ pedido.qr_code_pix }}</span>
                         </div>
                         {% else %}
-                        <p class="text-xs text-orange-700/80 font-medium text-center">
-                            A processar código de pagamento...
+                        <p class="text-xs text-orange-700/80 font-medium text-center">A processar código de pagamento...
                         </p>
                         {% endif %}
                     </div>
@@ -99,33 +88,24 @@
 
                 {% elif pedido.status|lower == 'em_analise' %}
                 <div
-                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-blue-500 hover:shadow-md transition-shadow">
-
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
                     <div
                         class="absolute top-0 right-0 bg-blue-100 text-blue-800 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10">
-                        🔍 Em Análise
-                    </div>
-
+                        🔍 Em Análise</div>
                     <div class="mb-6 mt-4">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                            Pedido #{{ pedido.id }}
-                        </p>
-                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">
-                            {{ pedido.get_pacote_display }}
-                        </h3>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pedido
+                            #{{pedido.id}}</p>
+                        <h3 class="text-2xl font-black text-slate-800 fonte-agro">{{ pedido.get_pacote_display }}</h3>
                     </div>
-
                     <div
                         class="bg-blue-50 rounded-xl p-6 mb-6 flex-grow border border-blue-100 flex flex-col justify-center text-center">
                         <div class="text-3xl mb-3">🌾</div>
                         <p class="text-xs text-blue-800 font-black mb-2 uppercase tracking-widest">Documento Recebido!
                         </p>
-                        <p class="text-xs text-blue-700/80 font-medium leading-relaxed">
-                            A comissão organizadora está a analisar o seu comprovante de Produtor Rural. Não é
-                            necessário realizar nenhum pagamento agora.
-                        </p>
+                        <p class="text-xs text-blue-700/80 font-medium leading-relaxed">A comissão organizadora está a
+                            analisar o seu comprovante de Produtor Rural. Não é necessário realizar nenhum pagamento
+                            agora.</p>
                     </div>
-
                     <button disabled
                         class="w-full bg-gray-100 text-gray-400 font-black uppercase tracking-widest py-4 rounded-xl cursor-not-allowed shadow-none text-sm mt-auto">
                         ⏳ Aguardando Aprovação
@@ -137,15 +117,15 @@
 
                 {% for inscricao in inscricoes %}
                 <div x-data="{ mostrarQR: false }"
-                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full border-l-8 border-l-green-500 hover:shadow-md transition-shadow">
+                    class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
                     <div
                         class="absolute top-0 right-0 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl flex items-center gap-1.5 z-10">
                         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Confirmado
                     </div>
 
                     <div class="mb-6 mt-2">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ingresso #{{
-                            inscricao.codigo_ingresso }}</p>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                            {{inscicao.codigo_ingresso}}</p>
                         <h3 class="text-2xl font-black text-slate-800 fonte-agro">Acesso Evento</h3>
                     </div>
 
@@ -194,9 +174,8 @@
                 <h3 class="text-2xl font-black text-slate-800 fonte-agro mb-2">Ainda não tem ingressos</h3>
                 <p class="text-gray-500 font-medium mb-8">Garanta a sua vaga no XI Dia do Leite.</p>
                 <a href="{% url 'comprar_ingressos' %}"
-                    class="inline-block bg-[#7a1b24] text-white font-black uppercase tracking-widest px-8 py-4 rounded-full hover:-translate-y-1 hover:shadow-xl transition-all text-xs">
-                    Comprar Ingressos
-                </a>
+                    class="inline-block bg-[#7a1b24] text-white font-black uppercase tracking-widest px-8 py-4 rounded-full hover:-translate-y-1 hover:shadow-xl transition-all text-xs">Comprar
+                    Ingressos</a>
             </div>
             {% endif %}
 
@@ -205,18 +184,14 @@
         <div x-show="abaAtiva === 'certificados'" style="display: none;"
             x-transition:enter="transition ease-out duration-300 transform"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-
             <div
                 class="bg-white rounded-[2rem] p-12 md:p-16 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto mt-4">
                 <div class="text-5xl md:text-6xl mb-6 opacity-40">🎓</div>
                 <h3 class="text-xl md:text-2xl font-black text-slate-800 fonte-agro mb-3">Certificados Indisponíveis
                 </h3>
-                <p class="text-gray-500 font-medium text-sm md:text-base leading-relaxed">
-                    Aguarde! Os certificados serão liberados nesta aba automaticamente após a conclusão do evento e a
-                    confirmação de sua presença.
-                </p>
+                <p class="text-gray-500 font-medium text-sm md:text-base leading-relaxed">Aguarde! Os certificados serão
+                    liberados nesta aba automaticamente após a conclusão do evento e a confirmação de sua presença.</p>
             </div>
-
         </div>
 
     </div>
