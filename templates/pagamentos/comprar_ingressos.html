@@ -2,22 +2,22 @@
 {% load static %}
 
 {% block content %}
-<section class="bg-dots-light min-h-screen pt-12 pb-10 flex flex-col items-center" x-data="{ 
-            loteAtual: 'promocional', 
-            pacoteSelecionado: '', 
+<section class="bg-dots-light min-h-screen pt-12 pb-10 flex flex-col items-center" x-data="{
+            pacoteSelecionado: '',
             step: 1,
+            valorTotal: '',
             jaTemMini: {{ ja_tem_minicurso|yesno:'true,false' }},
             jaTemPalestra: {{ ja_tem_palestras|yesno:'true,false' }}
          }">
     <div class="container mx-auto px-4 max-w-6xl">
 
-        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="text-center md:text-left">
                 <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight fonte-agro mb-0">
                     Ingressos Oficiais
                 </h1>
                 <p class="text-gray-500 font-medium text-sm">
-                    Garanta sua vaga no maior evento agropecuário do IFMG.
+                    Garanta sua vaga em um dos maiores eventos agropecuários do IFMG.
                 </p>
             </div>
             <div>
@@ -28,97 +28,129 @@
             </div>
         </div>
 
-        <form method="POST" action="{% url 'comprar_ingressos' %}" enctype="multipart/form-data"
-            class="w-full relative">
+        <form method="POST" action="{% url 'comprar_ingressos' %}" enctype="multipart/form-data" class="w-full relative" id="ticket-form">
             {% csrf_token %}
             <input type="hidden" name="pacote" :value="pacoteSelecionado">
+            
+            <!-- AVISO OCULTO PARA O BACKEND EXIGIR O COMPROVANTE -->
+            <input type="hidden" name="forma_pagamento" value="pix_manual">
 
-            <input type="hidden" name="lote_tipo" :value="loteAtual">
-
+            <!-- PASSO 1: ESCOLHER PACOTE -->
             <div x-show="step === 1" x-transition>
 
-                <div class="flex justify-center mb-6">
+                <div class="flex justify-center mb-10">
                     <div class="bg-gray-100 p-1.5 rounded-full inline-flex">
-                        <button type="button" @click="loteAtual = 'promocional'"
-                            :class="loteAtual === 'promocional' ? 'bg-white text-slate-800 shadow-sm' : 'text-gray-400 hover:text-gray-600'"
-                            class="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all">
-                            Lote Promocional
-                        </button>
-
-                        <button type="button" disabled title="Aguarde a abertura do lote"
-                            class="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all text-gray-300 bg-gray-50/50 cursor-not-allowed">
-                            Lote Normal 🔒
-                        </button>
+                        <span class="bg-white text-slate-800 shadow-sm px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest">
+                            Vendas Abertas: {{ lote.nome }}
+                        </span>
                     </div>
                 </div>
 
-                <div
-                    class="max-w-3xl mx-auto mb-10 bg-white rounded-3xl p-6 md:p-8 border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-6 transition-all hover:shadow-md">
-
-                    <div
-                        class="bg-amber-50 border border-amber-100 w-16 h-16 flex items-center justify-center rounded-full text-3xl shadow-inner shrink-0">
+                <div class="max-w-5xl mx-auto mb-10 bg-white rounded-3xl p-6 md:p-8 border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-6 transition-all hover:shadow-md">
+                    <div class="bg-amber-50 border border-amber-100 w-16 h-16 flex items-center justify-center rounded-full text-3xl shadow-inner shrink-0">
                         🌾
                     </div>
-
                     <div class="flex-1 text-center md:text-left">
                         <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-1">É Produtor Rural?
                             <span class="text-gray-400 font-medium text-xs">(Opcional)</span>
                         </h4>
-                        <p class="text-xs text-gray-500 font-medium leading-relaxed">Anexe a sua carteirinha ou
-                            comprovativo. O pedido ficará em análise e não precisará de pagar agora.</p>
+                        <p class="text-xs text-gray-500 font-medium leading-relaxed">Anexe a sua carteirinha ou comprovante. O pedido ficará em análise e não precisará pagar.</p>
                     </div>
-
                     <div class="w-full md:w-auto mt-4 md:mt-0 flex justify-center">
                         <input type="file" name="comprovante_produtor" id="comprovante_produtor"
                             accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-sm text-slate-500
-                            file:mr-4 file:py-3 file:px-6
-                            file:rounded-full file:border-0
+                            file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0
                             file:text-[10px] file:font-black file:uppercase file:tracking-widest
-                            file:bg-slate-100 file:text-slate-700
-                            hover:file:bg-slate-200 hover:file:text-slate-900 cursor-pointer transition-all">
+                            file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 hover:file:text-slate-900 cursor-pointer transition-all">
                     </div>
                 </div>
 
-                <div x-show="loteAtual === 'promocional'" class="max-w-xl mx-auto w-full">
-                    <div
-                        class="bg-[#7a1b24] rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative border-4 border-white transform hover:-translate-y-2 transition-transform">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
 
-                        <div
-                            class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-bl-2xl">
-                            🔥 Apenas 20 Vagas!
+                    <!-- PALESTRAS -->
+                    <div class="bg-white rounded-[2rem] p-6 md:p-8 shadow-md border border-gray-100 flex flex-col justify-between transform hover:-translate-y-1 transition-all">
+                        <div>
+                            <div class="mb-4">
+                                <h3 class="text-xl font-black text-slate-800 fonte-agro mb-1">Somente Palestras</h3>
+                                <p class="text-gray-400 text-xs font-medium">Acesso aos painéis principais.</p>
+                            </div>
+                            <div class="mb-6 text-slate-800 flex items-end gap-1">
+                                <span class="text-gray-400 font-bold text-sm pb-1">R$</span>
+                                <span class="text-4xl font-black tracking-tight">{{ lote.preco_palestras }}</span>
+                            </div>
+                            <ul class="space-y-3 mb-8 text-gray-500 text-xs font-semibold border-t border-gray-100 pt-4">
+                                <li class="flex items-center"><span class="text-[#7a1b24] mr-2">✔</span> 1 Dia de Palestras</li>
+                                <li class="flex items-center"><span class="text-[#7a1b24] mr-2">✔</span> Debates e Mesas Redondas</li>
+                                <li class="flex items-center text-gray-300 line-through"><span class="mr-2">❌</span> Não inclui Minicurso</li>
+                            </ul>
                         </div>
+                        <button type="button" @click="pacoteSelecionado = 'palestras'; valorTotal = '{{ lote.preco_palestras }}'; step = 3"
+                            :disabled="jaTemPalestra"
+                            class="w-full bg-slate-100 text-slate-700 font-black text-xs uppercase tracking-widest py-4 rounded-full hover:bg-[#7a1b24] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="jaTemPalestra">Já Adquirido</span>
+                            <span x-show="!jaTemPalestra">Selecionar</span>
+                        </button>
+                    </div>
 
-                        <div class="mb-6 mt-4">
-                            <h3 class="text-3xl font-black text-white fonte-agro mb-1">Combo Passaporte</h3>
-                            <p class="text-red-200 text-sm">Acesso completo às Palestras + 1 Minicurso.</p>
+                    <!-- COMBO -->
+                    <div class="bg-[#7a1b24] rounded-[2rem] p-6 md:p-8 shadow-xl relative border-4 border-white flex flex-col justify-between transform hover:-translate-y-1 transition-all">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-950 text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-full shadow-sm">
+                            ⭐ Melhor Opção
                         </div>
-
-                        <div class="mb-8 text-white flex items-end gap-2">
-                            <span class="text-red-200 font-bold text-2xl pb-1">R$</span>
-                            <span class="text-6xl font-black tracking-tighter">115,00</span>
+                        <div>
+                            <div class="mb-4 mt-2">
+                                <h3 class="text-2xl font-black text-white fonte-agro mb-1">Combo Passaporte</h3>
+                                <p class="text-red-200 text-xs font-medium">Completo: Palestras + 1 Minicurso.</p>
+                            </div>
+                            <div class="mb-6 text-white flex items-end gap-1">
+                                <span class="text-red-300 font-bold text-sm pb-1">R$</span>
+                                <span class="text-5xl font-black tracking-tight">{{ lote.preco_combo }}</span>
+                            </div>
+                            <ul class="space-y-3 mb-8 text-red-50 text-xs font-semibold border-t border-red-900/50 pt-4">
+                                <li class="flex items-center"><span class="text-yellow-400 mr-2">✔</span> 2 Dias de Evento Completo</li>
+                                <li class="flex items-center"><span class="text-yellow-400 mr-2">✔</span> Todas as Palestras</li>
+                                <li class="flex items-center"><span class="text-yellow-400 mr-2">✔</span> Vaga em 1 Minicurso</li>
+                            </ul>
                         </div>
-
-                        <ul class="space-y-4 mb-10 text-red-50 font-medium">
-                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Acesso aos
-                                2 dias de evento</li>
-                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Todas as
-                                Palestras e Debates</li>
-                            <li class="flex items-center"><span class="text-yellow-400 text-xl mr-3">✔</span> Vaga
-                                garantida em 1 Minicurso</li>
-                        </ul>
-
-                        <button type="button" @click="pacoteSelecionado = 'combo'; step = 2"
+                        <button type="button" @click="pacoteSelecionado = 'combo'; valorTotal = '{{ lote.preco_combo }}'; step = 2"
                             :disabled="jaTemMini || jaTemPalestra"
-                            class="w-full bg-white text-[#7a1b24] font-black uppercase tracking-widest py-5 rounded-full hover:bg-gray-50 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg">
-                            <span x-show="jaTemMini || jaTemPalestra">Você já possui ingressos</span>
+                            class="w-full bg-white text-[#7a1b24] font-black text-xs uppercase tracking-widest py-4 rounded-full hover:bg-yellow-400 hover:text-yellow-950 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="jaTemMini || jaTemPalestra">Já Possui Ingressos</span>
                             <span x-show="!(jaTemMini || jaTemPalestra)">Comprar Agora</span>
                         </button>
                     </div>
+
+                    <!-- MINICURSO -->
+                    <div class="bg-white rounded-[2rem] p-6 md:p-8 shadow-md border border-gray-100 flex flex-col justify-between transform hover:-translate-y-1 transition-all">
+                        <div>
+                            <div class="mb-4">
+                                <h3 class="text-xl font-black text-slate-800 fonte-agro mb-1">Só Minicurso</h3>
+                                <p class="text-gray-400 text-xs font-medium">Foco prático em uma oficina.</p>
+                            </div>
+                            <div class="mb-6 text-slate-800 flex items-end gap-1">
+                                <span class="text-gray-400 font-bold text-sm pb-1">R$</span>
+                                <span class="text-4xl font-black tracking-tight">{{ lote.preco_minicurso }}</span>
+                            </div>
+                            <ul class="space-y-3 mb-8 text-gray-500 text-xs font-semibold border-t border-gray-100 pt-4">
+                                <li class="flex items-center"><span class="text-[#7a1b24] mr-2">✔</span> 1 Minicurso Escolhido</li>
+                                <li class="flex items-center"><span class="text-[#7a1b24] mr-2">✔</span> Certificado de Horas Práticas</li>
+                                <li class="flex items-center text-gray-300 line-through"><span class="mr-2">❌</span> Não inclui Palestras</li>
+                            </ul>
+                        </div>
+                        <button type="button" @click="pacoteSelecionado = 'minicurso'; valorTotal = '{{ lote.preco_minicurso }}'; step = 2"
+                            :disabled="jaTemMini"
+                            class="w-full bg-slate-100 text-slate-700 font-black text-xs uppercase tracking-widest py-4 rounded-full hover:bg-[#7a1b24] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="jaTemMini">Limite Atingido</span>
+                            <span x-show="!jaTemMini">Selecionar</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
+            <!-- PASSO 2: ESCOLHER MINICURSO -->
             <div x-show="step === 2" x-transition style="display: none;" class="max-w-2xl mx-auto">
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-braba border border-gray-100 text-center">
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 text-center">
 
                     <button type="button" @click="step = 1; pacoteSelecionado = ''"
                         class="text-gray-400 text-sm font-bold uppercase tracking-widest hover:text-[#7a1b24] mb-8">
@@ -126,24 +158,79 @@
                     </button>
 
                     <h2 class="text-3xl font-black text-slate-800 fonte-agro mb-4">Escolha seu Minicurso</h2>
-                    <p class="text-gray-500 mb-8">Para finalizar a compra do <span x-text="pacoteSelecionado"
-                            class="uppercase font-bold text-[#7a1b24]"></span>, selecione a turma desejada:</p>
+                    <p class="text-gray-500 mb-8">Para continuar a compra do <span x-text="pacoteSelecionado" class="uppercase font-bold text-[#7a1b24]"></span>, selecione a turma:</p>
 
-                    <select name="minicurso_id" required
+                    <select name="minicurso_id"
                         class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl p-4 outline-none text-slate-700 font-medium mb-8 focus:border-[#7a1b24]">
                         <option value="" disabled selected>Clique aqui para escolher a turma...</option>
                         {% for curso in minicursos %}
-                        {% if curso.vagas > 0 %}
-                        <option value="{{ curso.id }}">{{ curso.titulo }}</option>
-                        {% else %}
-                        <option value="" disabled>{{ curso.titulo }} (ESGOTADO)</option>
-                        {% endif %}
+                            {% if curso.vagas > 0 %}
+                               <option value="{{ curso.id }}">{{ curso.titulo }}</option>
+                            {% else %}
+                                <option value="" disabled>{{ curso.titulo }} (ESGOTADO)</option>
+                            {% endif %}
                         {% empty %}
-                        <option value="" disabled>Nenhum minicurso cadastrado no momento.</option>
+                            <option value="" disabled>Nenhum minicurso cadastrado no momento.</option>
                         {% endfor %}
                     </select>
 
-                    <button type="submit"
+                    <button type="button" @click="if(document.querySelector('select[name=\'minicurso_id\']').value) { step = 3 } else { alert('Por favor, selecione uma turma primeiro!') }"
+                        class="w-full bg-[#7a1b24] text-white font-black uppercase tracking-widest py-5 rounded-full shadow-xl shadow-red-900/30 hover:-translate-y-1 transition-all text-lg">
+                        Ir para Pagamento ➔
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASSO 3: PAGAMENTO PIX E FINALIZAR -->
+            <div x-show="step === 3" x-transition style="display: none;" class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-xl border border-gray-100 text-center">
+                    
+                    <button type="button" @click="step = (pacoteSelecionado === 'palestras') ? 1 : 2"
+                        class="text-gray-400 text-sm font-bold uppercase tracking-widest hover:text-[#7a1b24] mb-8">
+                        ← Voltar e Revisar
+                    </button>
+
+                    <h2 class="text-3xl font-black text-slate-800 fonte-agro mb-4">Pagamento via PIX</h2>
+                    <p class="text-gray-500 mb-6">
+                        Transfira o valor de <span class="font-bold text-lg text-[#7a1b24]">R$ <span x-text="valorTotal"></span></span> para a chave abaixo:
+                    </p>
+
+                    <!-- CAIXA DA CHAVE PIX -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-6 inline-block w-full">
+                        <span class="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">CHAVE PIX </span>
+                        <span class="text-xl md:text-2xl font-black text-[#7a1b24] tracking-wider select-all">janaelsonpedro123@gmail.com</span>
+                    </div>
+
+                    <p class="text-xs text-gray-400 font-medium mb-6">
+                        <strong class="text-slate-600">Atenção:</strong> Se você anexou o comprovante de Produtor Rural no Passo 1, pode ignorar o pagamento e apenas clicar em finalizar pedido.
+                    </p>
+
+                    <!-- CAMPO DE ANEXAR COMPROVANTE PIX -->
+                    <div class="mb-8 w-full flex justify-center border-t border-gray-100 pt-8">
+                        <div class="w-full">
+                            <label class="block text-sm font-bold text-slate-700 uppercase tracking-widest mb-3">Anexar Comprovante do PIX</label>
+                            <input type="file" name="comprovante_pix" id="comprovante_pix" accept=".pdf,.jpg,.jpeg,.png"
+                                class="block w-full text-sm text-slate-500 mx-auto
+                                file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0
+                                file:text-xs file:font-black file:uppercase file:tracking-widest
+                                file:bg-gray-100 file:text-slate-700 hover:file:bg-[#7a1b24] hover:file:text-white cursor-pointer transition-all">
+                        </div>
+                    </div>
+
+                    <!-- BOTÃO ALTERADO: VALIDAÇÃO INTELIGENTE PARA FORÇAR ANEXO -->
+                    <button type="submit" id="btn-finalizar"
+                        onclick="
+                            var docProdutor = document.getElementById('comprovante_produtor').value;
+                            var docPix = document.getElementById('comprovante_pix').value;
+                            
+                            if(!docProdutor && !docPix) {
+                                alert('Você precisa anexar o comprovante de pagamento do PIX para finalizar!');
+                                event.preventDefault();
+                                return false;
+                            }
+                            
+                            setTimeout(() => { this.disabled = true; this.innerText = 'PROCESSANDO... ⏳'; this.classList.remove('hover:-translate-y-1'); this.classList.add('opacity-70', 'cursor-not-allowed'); }, 50);
+                        "
                         class="w-full bg-[#7a1b24] text-white font-black uppercase tracking-widest py-5 rounded-full shadow-xl shadow-red-900/30 hover:-translate-y-1 transition-all text-lg">
                         Finalizar Pedido ✔
                     </button>

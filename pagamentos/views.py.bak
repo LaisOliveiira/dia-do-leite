@@ -1,0 +1,220 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from eventos.models import Evento, Inscricao
+from .models import Pedido, Lote
+import mercadopago
+import json
+import os
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.db import transaction
+from django.core.mail import send_mail
+
+@login_required
+def comprar_ingressos(request):
+    lote_ativo = Lote.objects.filter(ativo=True).first()
+
+    if not lote_ativo:
+        messages.error(request, 'As vendas estão suspensas. Nenhum lote ativo.')
+        return redirect('painel')
+
+    ja_tem_minicurso = Inscricao.objects.filter(usuario=request.user, evento__tipo__nome__icontains='mini').exists()
+    ja_tem_palestras = Inscricao.objects.filter(usuario=request.user, evento__tipo__nome__icontains='palestra').exists()
+    minicursos = Evento.objects.filter(tipo__nome__icontains='mini')
+
+    if request.method == 'POST':
+        pacote_escolhido = request.POST.get('pacote')
+        minicurso_id = request.POST.get('minicurso_id')
+
+        valor = 0.00
+
+        # --- LÓGICA DE PREÇOS DO LOTE ATIVO (LOTE NORMAL) ---
+        if pacote_escolhido == 'combo':
+            valor = lote_ativo.preco_combo
+        elif pacote_escolhido == 'palestras':
+            valor = lote_ativo.preco_palestras
+        elif pacote_escolhido == 'minicurso':
+            valor = lote_ativo.preco_minicurso
+        # --------------------------------------------------
+
+        if pacote_escolhido == 'palestras' and ja_tem_palestras:
+            messages.error(request, 'Você já possui acesso às palestras.')
+            return redirect('comprar_ingressos')
+
+        if pacote_escolhido == 'minicurso' and ja_tem_minicurso:
+            messages.error(request, 'Você já atingiu o limite de minicursos.')
+            return redirect('comprar_ingressos')
+
+        if pacote_escolhido == 'combo' and (ja_tem_palestras or ja_tem_minicurso):
+            messages.error(request, 'Você já possui parte deste combo.')
+            return redirect('comprar_ingressos')
+
+        if pacote_escolhido in ['minicurso', 'combo'] and not minicurso_id:
+            messages.error(request, 'Selecione o minicurso.')
+            return redirect('comprar_ingressos')
+
+        # 🛡️ PROTEÇÃO CONTRA MANIPULAÇÃO DE ID
+        minicurso_obj = None
+        if minicurso_id:
+            minicurso_obj = minicursos.filter(id=minicurso_id).first()
+            if not minicurso_obj:
+                messages.error(request, 'O minicurso selecionado é inválido ou não está disponível.')
+                return redirect('comprar_ingressos')
+
+        if minicurso_obj and minicurso_obj.vagas <= 0:
+            messages.error(request, 'As vagas acabaram de ser preenchidas.')
+            return redirect('comprar_ingressos')
+
+        # 🛡️ VALIDAÇÃO DE SEGURANÇA DE UPLOAD (PRODUTOR RURAL)
+        comprovante = request.FILES.get('comprovante_produtor')
+        if comprovante:
+            extensao = os.path.splitext(comprovante.name)[1].lower()
+            extensoes_permitidas = ['.pdf', '.jpg', '.jpeg', '.png']
+            tipos_permitidos = ['application/pdf', 'image/jpeg', 'image/png']
+
+            if extensao not in extensoes_permitidas or comprovante.content_type not in tipos_permitidos:
+                messages.error(request, 'Arquivo inválido! Envie apenas documentos em PDF ou imagens (JPG, PNG).')
+                return redirect('comprar_ingressos')
+
+            if comprovante.size > 5 * 1024 * 1024:
+                messages.error(request, 'O arquivo é muito grande! O tamanho máximo permitido é de 5MB.')
+                return redirect('comprar_ingressos')
+
+        # Criação segura do registro
+        pedido = Pedido.objects.create(
+            usuario=request.user,
+            pacote=pacote_escolhido,
+            minicurso_selecionado=minicurso_obj,
+            valor_total=valor,
+            status='pendente'
+        )
+
+        # --- INTERCEPTOR DO PRODUTOR RURAL ---
+        if comprovante:
+            pedido.comprovante_produtor = comprovante
+            pedido.status = 'em_analise'
+            pedido.save()
+            messages.success(request, 'Comprovante enviado! O seu pedido está em análise pela organização.')
+            return redirect('painel')
+
+        try:
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+
+            payment_data = {
+                "transaction_amount": float(valor),
+                "description": f"Inscrição Dia do Leite - Pedido #{pedido.id}",
+                "payment_method_id": "pix",
+                "payer": {
+                    "email": request.user.email,
+                    "first_name": request.user.first_name,
+                    "identification": {"type": "CPF", "number": request.user.cpf}
+                }
+            }
+
+            payment_response = sdk.payment().create(payment_data)
+            payment = payment_response["response"]
+
+            if "point_of_interaction" in payment:
+                pedido.qr_code_pix = payment["point_of_interaction"]["transaction_data"]["qr_code"]
+                pedido.id_transacao_mp = payment["id"]
+                pedido.save()
+
+                # 🛡️ PROTEÇÃO ADICIONAL CONTRA QUEDAS DE REDE NO ENVIO DE E-MAIL
+                try:
+                    subject = 'Inscrição realizada com sucesso - XI Dia do Leite'
+                    nome_usuario = request.user.first_name or request.user.username
+                    plain_message = (
+                        f"Olá, {nome_usuario}!\n\n"
+                        f"Sua inscrição no XI Dia do Leite foi realizada com sucesso!\n"
+                        f"O seu código PIX copia e cola já foi gerado. Acesse o seu painel no site para efetuar o pagamento e garantir seus ingressos.\n\n"
+                        f"Atenciosamente,\n"
+                        f"Equipe de Organização - XI Dia do Leite"
+                    )
+
+                    send_mail(
+                        subject,
+                        plain_message,
+                        settings.EMAIL_HOST_USER,
+                        [request.user.email],
+                        fail_silently=True
+                    )
+                except Exception as e_mail:
+                    # Captura o erro silenciosamente para não interromper a resposta da página
+                    print(f"AVISO - Bloqueio de e-mail evitado: {str(e_mail)}")
+
+                messages.success(request, 'PIX gerado! Efetue o pagamento no painel.')
+            else:
+                messages.warning(request, 'Pedido reservado! O PIX será gerado em instantes.')
+
+        except Exception as e:
+            messages.warning(request, 'Pedido reservado! O PIX será gerado em instantes.')
+
+        return redirect('painel')
+
+    return render(request, 'pagamentos/comprar_ingressos.html', {
+        'minicursos': minicursos, 'ja_tem_minicurso': ja_tem_minicurso,
+        'ja_tem_palestras': ja_tem_palestras, 'lote': lote_ativo
+    })
+
+@csrf_exempt
+def mercado_pago_webhook(request):
+    """
+    Webhook robusto e universal para capturar notificações do Mercado Pago.
+    """
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            print(f"DEBUG - Webhook recebido: {dados}")
+
+            # 🎯 CORREÇÃO CRÍTICA: Tenta extrair o ID usando todos os formatos possíveis do Mercado Pago
+            id_pagamento_mp = dados.get('data', {}).get('id') or dados.get('id')
+
+            # Se o Mercado Pago enviar no formato 'resource': '159559058143' ou '/v1/payments/159559058143'
+            if not id_pagamento_mp and 'resource' in dados:
+                resource_str = str(dados['resource'])
+                id_pagamento_mp = resource_str.split('/')[-1]
+
+            if id_pagamento_mp:
+                # Busca o pedido correspondente no banco de dados
+                pedido = Pedido.objects.filter(id_transacao_mp=id_pagamento_mp).first()
+
+                if pedido:
+                    # Consulta o status direto na API do Mercado Pago para segurança máxima
+                    sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+                    payment_info = sdk.payment().get(id_pagamento_mp)
+
+                    if payment_info["status"] == 200:
+                        status_pagamento = payment_info["response"]["status"]
+                        print(f"DEBUG - Status real do pagamento {id_pagamento_mp}: {status_pagamento}")
+
+                        # Se o pagamento foi aprovado e o pedido no site ainda não foi atualizado
+                        if status_pagamento == "approved" and pedido.status != "aprovado":
+                            with transaction.atomic():
+                                pedido.status = "aprovado"
+                                pedido.save()
+
+                                # Lógica de Inscrição automatizada
+                                if pedido.pacote in ['palestras', 'combo']:
+                                    palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+                                    for palestra in palestras:
+                                        Inscricao.objects.get_or_create(usuario=pedido.usuario, evento=palestra)
+
+                                if pedido.pacote in ['minicurso', 'combo'] and pedido.minicurso_selecionado:
+                                    inscricao, created = Inscricao.objects.get_or_create(
+                                        usuario=pedido.usuario,
+                                        evento=pedido.minicurso_selecionado
+                                    )
+                                    if created and pedido.minicurso_selecionado.vagas > 0:
+                                        pedido.minicurso_selecionado.vagas -= 1
+                                        pedido.minicurso_selecionado.save()
+
+            # Retorna sempre HTTP 200 para o Mercado Pago dar o envio como processado
+            return JsonResponse({'status': 'ok'}, status=200)
+
+        except Exception as e:
+            print(f"ERRO NO WEBHOOK: {str(e)}")
+            return JsonResponse({'erro': 'Erro processado'}, status=200)
+
+    return JsonResponse({'erro': 'Método não permitido'}, status=405)

@@ -19,10 +19,39 @@ def enviar_email_ativacao(request, usuario):
     link_ativacao = request.build_absolute_uri(url_relativa)
 
     assunto = 'Confirme sua inscrição no XI Dia do Leite'
-    mensagem = f"""Olá, {usuario.first_name}!\n\nObrigado por se registar no XI Dia do Leite - IFMG Bambuí.\nPara ativar a sua conta, clique no link abaixo:\n\n{link_ativacao}\n\nEquipa de Organização"""
     
+    # Mensagem de segurança em texto puro (exigida por alguns servidores)
+    mensagem_txt = f"Olá, {usuario.first_name}!\n\nObrigado por se registar no XI Dia do Leite - IFMG Bambuí.\nPara ativar a sua conta, acesse o link:\n{link_ativacao}\n\nEquipe de Organização"
+
+    # 🎯 Mensagem em HTML (Evita o SPAM e fica visualmente profissional)
+    mensagem_html = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; color: #333;">
+        <h2 style="color: #751516; text-align: center;">XI Dia do Leite - IFMG Bambuí</h2>
+        <p>Olá, <b>{usuario.first_name}</b>!</p>
+        <p>Obrigado por se registar no nosso evento. A sua conta foi criada com sucesso.</p>
+        <p>Para ativar a sua conta e ter acesso ao painel de ingressos, clique no botão abaixo:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{link_ativacao}" style="background-color: #751516; color: white; padding: 14px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Ativar a Minha Conta</a>
+        </div>
+        <p style="font-size: 12px; color: #777;">Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+        <p style="font-size: 12px; word-break: break-all;"><a href="{link_ativacao}">{link_ativacao}</a></p>
+        <br>
+        <p>Atenciosamente,<br><b>Equipe de Organização</b></p>
+    </div>
+    """
+
+    remetente = f"XI Dia do Leite <{settings.EMAIL_HOST_USER}>"
+
     try:
-        send_mail(assunto, mensagem, settings.EMAIL_HOST_USER, [usuario.email], fail_silently=False)
+        # Envia o email usando o parâmetro html_message
+        send_mail(
+            assunto, 
+            mensagem_txt, 
+            remetente, 
+            [usuario.email], 
+            fail_silently=False,
+            html_message=mensagem_html
+        )
         return True
     except Exception as e:
         print(f"Erro ao enviar email: {e}")
@@ -36,7 +65,7 @@ def gerar_pdf_certificado(inscricao):
     # Design do Certificado
     p.setStrokeColor(HexColor('#751516'))
     p.setLineWidth(0.5*cm)
-    p.rect(0.5*cm, 0.5*cm, largura - 1*cm, altura - 1*cm) 
+    p.rect(0.5*cm, 0.5*cm, largura - 1*cm, altura - 1*cm)
     p.setLineWidth(0.1*cm)
     p.rect(0.8*cm, 0.8*cm, largura - 1.6*cm, altura - 1.6*cm)
 
@@ -57,7 +86,7 @@ def gerar_pdf_certificado(inscricao):
     data_formatada = inscricao.evento.data_evento.strftime('%d/%m/%Y') if inscricao.evento.data_evento else ''
     texto = f"participou da atividade '{inscricao.evento.titulo}', realizada em {data_formatada},"
     p.drawCentredString(largura/2, altura - 11.5*cm, texto)
-    
+
     texto2 = f"com carga horária total de {inscricao.evento.carga_horaria} horas."
     p.drawCentredString(largura/2, altura - 12.5*cm, texto2)
 

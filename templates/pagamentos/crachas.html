@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Crachás - XI Dia do Leite</title>
+    <style>
+        /* Esconde botões na hora de imprimir */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; margin: 0; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f5;
+            padding: 20px;
+        }
+        .header-painel {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .btn-imprimir {
+            background-color: #7a1b24; color: white; padding: 10px 20px;
+            border: none; border-radius: 8px; font-weight: bold; font-size: 15px;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 5px;
+        }
+        .btn-alternar {
+            background-color: #cbd5e1; color: #334155; padding: 10px 20px; text-decoration: none;
+            border-radius: 8px; font-weight: bold; font-size: 15px; margin: 5px; display: inline-block;
+            transition: 0.2s;
+        }
+        .btn-alternar.ativo {
+            background-color: #10b981; color: white;
+        }
+        /* Grade idêntica à sua imagem */
+        .grade-crachas {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+        }
+        .cracha {
+            border: 2px dashed #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 130px;
+            text-align: center;
+        }
+        .nome {
+            font-size: 13px; font-weight: bold; text-transform: uppercase;
+            padding: 10px 5px; flex-grow: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .faixa-cargo {
+            background-color: #000; color: #fff;
+            font-weight: 900; letter-spacing: 3px;
+            padding: 8px 0; font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-painel no-print">
+        <h2 style="color: #333; margin-bottom: 15px;">Gerador de Crachás</h2>
+        
+        <div style="margin-bottom: 20px;">
+            <a href="?tipo=participantes" class="btn-alternar {% if tipo == 'participantes' %}ativo{% endif %}">
+                👥 Imprimir Participantes
+            </a>
+            <a href="?tipo=organizadores" class="btn-alternar {% if tipo == 'organizadores' %}ativo{% endif %}">
+                ⭐ Imprimir Organizadores
+            </a>
+        </div>
+
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Iniciar Impressão</button>
+    </div>
+
+    <div class="grade-crachas">
+        {% for cracha in crachas %}
+        <div class="cracha">
+            <div class="nome">{{ cracha.nome }}</div>
+            <div class="faixa-cargo">{{ cracha.cargo }}</div>
+        </div>
+        {% empty %}
+        <div style="grid-column: span 4; text-align: center; padding: 40px; color: #666; border: 2px dashed #ccc;">
+            Nenhum registro encontrado nesta categoria.
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

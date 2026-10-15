@@ -1,7 +1,9 @@
 from django.db import models
 from django.conf import settings
-from eventos.models import Evento
+from eventos.models import Evento, Inscricao
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Lote(models.Model):
     nome = models.CharField(max_length=50, help_text="Ex: Lote 1, Lote 2, Último Lote")
@@ -35,7 +37,7 @@ class Pedido(models.Model):
         ('pendente', 'Aguardando Pagamento'),
         ('aprovado', 'Pagamento Aprovado'),
         ('recusado', 'Pagamento Recusado'),
-        ('em_analise', 'Em Análise'), # <-- NOVO STATUS AQUI
+        ('em_analise', 'Em Análise'), 
     )
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -51,8 +53,33 @@ class Pedido(models.Model):
     qr_code_pix = models.TextField(blank=True, null=True)
     id_transacao_mp = models.CharField(max_length=255, blank=True, null=True)
     
-    # <-- NOVO CAMPO PARA A FOTO DO PRODUTOR RURAL -->
+    # FOTO DO PRODUTOR RURAL E PIX MANUAL
     comprovante_produtor = models.FileField(upload_to='comprovantes_produtor/', null=True, blank=True)
+    comprovante_pix = models.FileField(upload_to='comprovantes_pix/', null=True, blank=True)
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.usuario.first_name} - {self.get_pacote_display()}"
+
+
+# --- GATILHO (SIGNAL) QUE GERA OS INGRESSOS AUTOMATICAMENTE ---
+@receiver(post_save, sender=Pedido)
+def gerar_inscricao_apos_aprovacao(sender, instance, **kwargs):
+    # Verifica se o pedido foi alterado para 'aprovado'
+    if instance.status == 'aprovado':
+        
+        # 1. Gera Inscrição para Palestras (se for pacote palestras ou combo)
+        if instance.pacote in ['palestras', 'combo']:
+            palestras = Evento.objects.filter(tipo__nome__icontains='palestra')
+            for palestra in palestras:
+                Inscricao.objects.get_or_create(usuario=instance.usuario, evento=palestra)
+
+        # 2. Gera Inscrição para Minicurso (se for pacote minicurso ou combo)
+        if instance.pacote in ['minicurso', 'combo'] and instance.minicurso_selecionado:
+            inscricao, criada = Inscricao.objects.get_or_create(
+                usuario=instance.usuario,
+                evento=instance.minicurso_selecionado
+            )
+            # Desconta a vaga do minicurso APENAS na hora que a inscrição é criada pela 1ª vez
+            if criada and instance.minicurso_selecionado.vagas > 0:
+                instance.minicurso_selecionado.vagas -= 1
+                instance.minicurso_selecionado.save()

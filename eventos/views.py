@@ -44,10 +44,10 @@ def criar_evento_view(request):
             preco=preco,
             carga_horaria=carga_horaria
         )
-        
+
         messages.success(request, 'Evento criado e publicado com sucesso!')
         # Redireciona de volta para a Home para ver o evento novo lá
-        return redirect('landing_page') 
+        return redirect('landing_page')
 
     # Se for GET, apenas abre a página enviando os tipos de evento para preencher o <select>
     tipos = TipoEvento.objects.all()
@@ -65,8 +65,8 @@ def inscrever_evento_view(request, evento_id):
     # 2. Se o evento for GRATUITO
     if not evento.is_pago:
         Inscricao.objects.create(
-            usuario=request.user, 
-            evento=evento, 
+            usuario=request.user,
+            evento=evento,
             status='aprovado'
         )
         messages.success(request, 'Inscrição gratuita confirmada com sucesso!')
@@ -76,15 +76,15 @@ def inscrever_evento_view(request, evento_id):
     else:
         # Cria a inscrição como pendente
         inscricao = Inscricao.objects.create(
-            usuario=request.user, 
-            evento=evento, 
+            usuario=request.user,
+            evento=evento,
             status='pendente'
         )
-        
+
         # --- LÓGICA DO PICPAY ---
         # Como ainda não temos os tokens da Safra Jr., vamos simular o link de pagamento.
         # Quando tivermos os tokens, substituiremos este bloco pela chamada real à API.
-        
+
         link_simulado = f"https://picpay.me/safrajr/{evento.preco}"
         inscricao.link_pagamento = link_simulado
         inscricao.save()
@@ -98,7 +98,7 @@ def lista_edicoes(request):
     return render(request, 'eventos/edicoes.html', {'edicoes': edicoes})
 
 
-@staff_member_required 
+@staff_member_required
 def portaria_checkin(request):
     if request.method == 'POST':
         try:
@@ -108,31 +108,62 @@ def portaria_checkin(request):
             if not codigo:
                 return JsonResponse({'status': 'erro', 'mensagem': 'Nenhum código lido.'})
 
-            # Vai ao banco de dados procurar o ingresso
-            inscricao = Inscricao.objects.filter(codigo_ingresso=codigo).first()
+            # 1. Encontra a inscrição base para saber quem é o dono do QR Code
+            # Usamos select_related para deixar a busca super rápida no banco
+            inscricao_base = Inscricao.objects.select_related('usuario', 'evento__tipo').filter(codigo_ingresso=codigo).first()
 
-            # 1. Se o "esperto" inventou um código ou trouxe de outro evento
-            if not inscricao:
+            # Se o "esperto" inventou um código ou trouxe de outro evento
+            if not inscricao_base:
                 return JsonResponse({'status': 'erro', 'mensagem': '❌ INGRESSO INVÁLIDO OU INEXISTENTE!'})
 
-            # 2. Se for o "amigo" com o print (O ingresso já foi validado antes)
-            if inscricao.presenca_confirmada:
+            aluno = inscricao_base.usuario
+            tipo_evento = inscricao_base.evento.tipo.nome.lower()
+
+            # =======================================================
+            # 🎟️ LÓGICA 1: PASSAPORTE DE PALESTRAS (COMBO OU PALESTRAS)
+            # =======================================================
+            if 'palestra' in tipo_evento:
+                # Verifica se o passaporte já foi bipado antes
+                if inscricao_base.presenca_confirmada:
+                    return JsonResponse({
+                        'status': 'aviso',
+                        'mensagem': f'⚠️ ALERTA: Passaporte já utilizado por {aluno.first_name or aluno.username}!'
+                    })
+
+                # Busca todas as inscrições de palestras desse aluno e confirma todas de uma vez!
+                inscricoes_palestras = Inscricao.objects.filter(
+                    usuario=aluno,
+                    evento__tipo__nome__icontains='palestra'
+                )
+                inscricoes_palestras.update(presenca_confirmada=True)
+
                 return JsonResponse({
-                    'status': 'aviso',
-                    'mensagem': f'⚠️ ALERTA: Ingresso já foi utilizado por {inscricao.usuario.first_name}!'
+                    'status': 'sucesso',
+                    'mensagem': f'✅ PASSAPORTE LIBERADO!\nBem-vindo(a) às Palestras, {aluno.first_name or aluno.username}!'
                 })
 
-            # 3. Tudo certo! É a primeira vez que o ingresso passa na porta.
-            inscricao.presenca_confirmada = True
-            inscricao.save()
+            # =======================================================
+            # 🎯 LÓGICA 2: MINICURSOS (INDIVIDUAL)
+            # =======================================================
+            else:
+                # Se for o "amigo" com o print tentando entrar no minicurso de novo
+                if inscricao_base.presenca_confirmada:
+                    return JsonResponse({
+                        'status': 'aviso',
+                        'mensagem': f'⚠️ ALERTA: Ingresso do minicurso já utilizado por {aluno.first_name or aluno.username}!'
+                    })
 
-            return JsonResponse({
-                'status': 'sucesso',
-                'mensagem': f'✅ ACESSO LIBERADO! Bem-vindo(a), {inscricao.usuario.first_name}!'
-            })
+                # Confirma a presença apenas neste minicurso específico
+                inscricao_base.presenca_confirmada = True
+                inscricao_base.save()
+
+                return JsonResponse({
+                    'status': 'sucesso',
+                    'mensagem': f'✅ ACESSO LIBERADO!\nBom minicurso, {aluno.first_name or aluno.username}!'
+                })
 
         except Exception as e:
             return JsonResponse({'status': 'erro', 'mensagem': 'Erro interno no leitor.'})
 
-    # Se ele apenas aceder à página, carrega a câmera
+    # Se ele apenas aceder à página (GET), carrega a câmera
     return render(request, 'eventos/portaria.html')

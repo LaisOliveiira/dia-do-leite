@@ -2,6 +2,7 @@ from decouple import config, Csv
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,7 +17,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'diadoleite.pythonanywhere.com']
 
 
 # Application definition
@@ -120,17 +121,18 @@ USE_I18N = True
 
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
 
-MEDIA_URL = '/media/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Configurações de Media (Uploads do usuário, como as fotos da galeria)
 MEDIA_URL = '/media/'
@@ -138,21 +140,35 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
-# CONFIGURAÇÃO DE ENVIO DE E-MAILS (GMAIL)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER') # <--- COLOQUE O SEU GMAIL AQUI
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# MOTOR DE E-MAIL PROFISSIONAL (API DO BREVO VIA ANYMAIL)
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+
+ANYMAIL = {
+    "BREVO_API_KEY": config('BREVO_API_KEY'),
+}
+
+# Remetente padrão amarrado ao e-mail configurado no .env
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # --- CHAVES DO MERCADO PAGO ---
 MERCADO_PAGO_ACCESS_TOKEN = config('MERCADO_PAGO_ACCESS_TOKEN')
 
-# E-mail
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# Rotas de Login, Redirecionamento e Segurança
+# Rotas de Login, Redirecionamento e Segurança
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'comprar_ingressos'
+CSRF_TRUSTED_ORIGINS = ['https://diadoleite.pythonanywhere.com']
+
+# Garante que o Django entenda que o PythonAnywhere está usando HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# 🎯 AJUSTE DE SEGURANÇA PARA RESOLVER O ERRO 403 (CSRF)
+# Mudamos de 'None' para 'Lax'. O 'Lax' é o padrão seguro que evita o erro 403
+# em dispositivos móveis, mantendo a proteção contra ataques externos.
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'

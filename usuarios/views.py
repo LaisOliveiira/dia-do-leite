@@ -4,7 +4,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-# Estes são os imports que faltavam para a função ativar_conta_view não quebrar
+# Validadores oficiais de E-mail do Django
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -12,8 +15,6 @@ from django.contrib.auth.tokens import default_token_generator
 from .models import Usuario
 from eventos.models import Inscricao
 from pagamentos.models import Pedido
-
-# Importamos os nossos novos serviços
 from .services import enviar_email_ativacao, gerar_pdf_certificado
 
 def cpf_valido(cpf):
@@ -28,52 +29,71 @@ def cpf_valido(cpf):
     return True
 
 def cadastro_view(request):
+    # 🛡️ PROTEÇÃO: Se a pessoa já estiver logada, redireciona imediatamente
+    if request.user.is_authenticated:
+        if request.user.is_staff or getattr(request.user, 'perfil', '') == 'empresa':
+            return redirect('/admin/') 
+        return redirect('landing_page')
+
     if request.method == 'POST':
         nome = request.POST.get('nome')
-        email = request.POST.get('email')
-        cpf = request.POST.get('cpf')
+        # 🎯 PADRONIZAÇÃO: E-mail sempre em minúsculas e sem espaços
+        email = request.POST.get('email', '').strip().lower()
+        cpf_digitado = request.POST.get('cpf', '')
         telefone = request.POST.get('telefone')
         senha = request.POST.get('senha')
         confirmacao = request.POST.get('confirmacao')
 
-        if senha != confirmacao:
-            messages.error(request, 'As senhas não coincidem.')
+        cpf = ''.join(filter(str.isdigit, cpf_digitado))
+
+        # 1. Trava anti-vazio
+        if not email or not cpf or not senha:
+            messages.error(request, 'Preencha todos os campos obrigatórios.')
             return render(request, 'usuarios/cadastro.html')
 
-        if Usuario.objects.filter(email=email).exists() or Usuario.objects.filter(cpf=cpf).exists():
-            messages.error(request, 'E-mail ou CPF já cadastrados.')
+        # 2. Trava de formato de e-mail
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, 'O e-mail digitado é inválido. Verifique se o escreveu corretamente (ex: o.seu.nome@gmail.com).')
+            return render(request, 'usuarios/cadastro.html')
+
+        if senha != confirmacao:
+            messages.error(request, 'As senhas não coincidem.')
             return render(request, 'usuarios/cadastro.html')
 
         if not cpf_valido(cpf):
             messages.error(request, 'O CPF digitado é inválido.')
             return render(request, 'usuarios/cadastro.html')
 
+        # 3. Verifica se já existe uma conta ATIVA (usando busca insensível a maiúsculas)
+        if Usuario.objects.filter(email__iexact=email, is_active=True).exists() or Usuario.objects.filter(cpf=cpf, is_active=True).exists():
+            messages.error(request, 'Este E-mail ou CPF já possuem uma conta ativa. Por favor, vá para a página de Login.')
+            return render(request, 'usuarios/cadastro.html')
+        
+        # Apaga contas presas no limbo de ativação
+        Usuario.objects.filter(email__iexact=email, is_active=False).delete()
+        Usuario.objects.filter(cpf=cpf, is_active=False).delete()
+
+        # 4. Cria o utilizador
         usuario = Usuario.objects.create_user(
-            username=email, email=email, password=senha, 
+            username=email, email=email, password=senha,
             first_name=nome, cpf=cpf, telefone=telefone, perfil='cliente'
         )
-        
-        # Bloqueia a conta até o usuário clicar no link do e-mail
-        usuario.is_active = False 
+
+        usuario.is_active = False
         usuario.save()
 
-        # --- FLUXO REAL DE VALIDAÇÃO POR E-MAIL ---
+        # Envia e-mail de ativação
         enviou = enviar_email_ativacao(request, usuario)
-        
+
         if enviou:
-            messages.success(
-                request, 
-                'Conta criada com sucesso! Enviámos um e-mail de confirmação. Por favor, verifique a sua caixa de entrada para ativar a sua conta.'
-            )
+            messages.success(request, 'Conta criada com sucesso! Enviámos um e-mail de confirmação. Por favor, verifique a sua caixa de entrada ou a sua pasta de SPAM para ativar a sua conta.')
         else:
-            # Se o servidor de e-mail falhar, avisa o utilizador
-            messages.error(
-                request, 
-                'A sua conta foi criada, mas houve um problema ao enviar o e-mail de ativação. Entre em contacto com a organização.'
-            )
+            messages.error(request, 'A sua conta foi criada, mas houve um problema ao enviar o e-mail de ativação. Entre em contacto com a organização.')
 
         return redirect('login')
-        
+
     return render(request, 'usuarios/cadastro.html')
 
 def ativar_conta_view(request, uidb64, token):
@@ -93,16 +113,48 @@ def ativar_conta_view(request, uidb64, token):
         return redirect('login')
 
 def login_view(request):
+    # 🛡️ PROTEÇÃO: Se a pessoa já estiver logada, redireciona imediatamente
+    if request.user.is_authenticated:
+        if request.user.is_staff or getattr(request.user, 'perfil', '') == 'empresa':
+            return redirect('/admin/') 
+        return redirect('landing_page')
+
+    # Limpeza de mensagens fantasmas
+    if request.method == 'GET':
+        list(messages.get_messages(request))
+
     if request.method == 'POST':
-        email = request.POST.get('email')
+        # 🎯 PADRONIZAÇÃO: E-mail sempre em minúsculas e sem espaços
+        email_digitado = request.POST.get('email', '').strip().lower()
         senha = request.POST.get('senha')
-        usuario = authenticate(request, username=email, password=senha)
-        if usuario is not None:
-            login(request, usuario)
-            if usuario.is_staff or getattr(usuario, 'perfil', '') == 'empresa':
-                return redirect('dashboard')
-            return redirect('landing_page')
-        messages.error(request, 'E-mail ou senha incorretos.')
+        
+        # 🎯 BUSCA INTELIGENTE: Procura ignorando maiúsculas/minúsculas no banco
+        usuario_teste = Usuario.objects.filter(email__iexact=email_digitado).first()
+
+        if usuario_teste:
+            # Se a conta existe mas não está ativa
+            if not usuario_teste.is_active:
+                if usuario_teste.check_password(senha):
+                    # Reenvio automático seguro
+                    enviar_email_ativacao(request, usuario_teste)
+                    messages.error(request, 'A sua conta ainda não foi ativada. Enviámos um novo link de confirmação para o seu e-mail (verifique também o SPAM).')
+                else:
+                    messages.error(request, 'E-mail ou senha incorretos.')
+                return render(request, 'usuarios/login.html')
+
+            # 🎯 AUTENTICAÇÃO SEGURA: Usa o username exato do banco de dados para evitar falhas no Django
+            usuario = authenticate(request, username=usuario_teste.username, password=senha)
+            
+            if usuario is not None:
+                login(request, usuario)
+                if usuario.is_staff or getattr(usuario, 'perfil', '') == 'empresa':
+                    return redirect('/admin/') 
+                return redirect('landing_page')
+            else:
+                messages.error(request, 'E-mail ou senha incorretos.')
+        else:
+            messages.error(request, 'E-mail ou senha incorretos.')
+
     return render(request, 'usuarios/login.html')
 
 def logout_view(request):
@@ -111,14 +163,12 @@ def logout_view(request):
 
 @login_required(login_url='/auth/login/')
 def painel_view(request):
-    # 1. Busca os ingressos já confirmados
     inscricoes = Inscricao.objects.filter(
-        usuario=request.user, 
+        usuario=request.user,
         status__in=['aprovado', 'gratis']
-    ).select_related('evento')    
-    # 2. Busca os pedidos pendentes da loja
+    ).select_related('evento')
     pedidos = Pedido.objects.filter(usuario=request.user).order_by('-id')
-    
+
     return render(request, 'usuarios/painel.html', {
         'inscricoes': inscricoes,
         'pedidos': pedidos
@@ -129,21 +179,19 @@ def perfil_view(request):
     if request.method == 'POST':
         usuario = request.user
         novo_cpf = request.POST.get('cpf')
-        
-        # --- NOVA TRAVA DE SEGURANÇA DO CPF ---
-        if novo_cpf != usuario.cpf: # Se a pessoa tentou mudar o CPF
+
+        if novo_cpf != usuario.cpf:
             if Usuario.objects.filter(cpf=novo_cpf).exists():
-                messages.error(request, 'Este CPF já está cadastrado em outra conta.')
+                messages.error(request, 'Este CPF já está registado noutra conta.')
                 return redirect('perfil')
             if not cpf_valido(novo_cpf):
                 messages.error(request, 'O novo CPF digitado é inválido.')
                 return redirect('perfil')
-            usuario.cpf = novo_cpf # Só altera se passar nos testes
+            usuario.cpf = novo_cpf
 
         usuario.first_name = request.POST.get('nome')
         usuario.telefone = request.POST.get('telefone')
-        
-        # ... (O RESTO DO SEU CÓDIGO DE SENHA CONTINUA IGUAL AQUI PARA BAIXO) ...
+
         senha_atual = request.POST.get('senha_atual')
         nova_senha = request.POST.get('nova_senha')
         confirmacao = request.POST.get('confirmacao')
@@ -158,10 +206,10 @@ def perfil_view(request):
             usuario.set_password(nova_senha)
 
         usuario.save()
-        messages.success(request, 'Dados atualizados com sucesso!')
+        messages.success(request, 'Dados updated com sucesso!')
         return redirect('perfil')
     return render(request, 'usuarios/perfil.html')
-    
+
 @login_required(login_url='/auth/login/')
 def certificados_view(request):
     certificados = Inscricao.objects.filter(usuario=request.user, presenca_confirmada=True)
@@ -171,13 +219,12 @@ def certificados_view(request):
 def gerar_certificado_pdf(request, inscricao_id):
     try:
         inscricao = Inscricao.objects.get(
-            id=inscricao_id, 
-            usuario=request.user, 
+            id=inscricao_id,
+            usuario=request.user,
             presenca_confirmada=True
         )
     except Inscricao.DoesNotExist:
         messages.error(request, "Certificado não disponível.")
         return redirect('certificados')
 
-    # Agora é o serviço que trata da criação gráfica do PDF
     return gerar_pdf_certificado(inscricao)

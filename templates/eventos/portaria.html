@@ -10,9 +10,10 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 
-<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+<body id="body-bg" class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300">
 
-    <div class="max-w-md w-full bg-slate-800 rounded-3xl p-6 shadow-2xl text-center border border-slate-700">
+    <!-- TELA PRINCIPAL DO LEITOR -->
+    <div id="main-card" class="max-w-md w-full bg-slate-800 rounded-3xl p-6 shadow-2xl text-center border border-slate-700">
         <h1 class="text-2xl font-black text-white mb-2 uppercase tracking-widest">Portaria Digital</h1>
         <p class="text-slate-400 text-sm mb-6">Aponte a câmera para o QR Code do aluno</p>
 
@@ -26,20 +27,27 @@
         </button>
     </div>
 
+    <!-- TELA GIGANTE DE CONFIRMAÇÃO (Fica oculta até ler o QR Code) -->
+    <div id="fullscreen-result" class="hidden flex flex-col items-center justify-center text-center p-4 w-full h-full">
+        <div id="result-icon" class="text-[120px] mb-4"></div>
+        <h1 id="result-title" class="text-6xl font-black uppercase tracking-widest mb-4 drop-shadow-lg"></h1>
+        <p id="result-msg" class="text-3xl font-bold drop-shadow-md mt-4 px-4"></p>
+    </div>
+
     <script>
         const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
         let escaneando = true;
 
         function onScanSuccess(decodedText, decodedResult) {
             if (!escaneando) return;
-            escaneando = false; // Trava o leitor para não ler 20x num segundo
+            escaneando = false; // Trava o leitor
 
-            html5QrcodeScanner.pause(true); // Pausa a câmera
+            html5QrcodeScanner.pause(true); // Pausa a câmera IMEDIATAMENTE
 
             const divResultado = document.getElementById('resultado');
-            divResultado.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'bg-yellow-500');
-            divResultado.innerHTML = "Processando...";
-            divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-blue-500 text-white mt-4";
+            divResultado.classList.remove('hidden');
+            divResultado.innerHTML = "PROCESSANDO...";
+            divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-blue-500 text-white mt-4 animate-pulse";
 
             // Dispara o código para o nosso views.py
             fetch("{% url 'portaria_checkin' %}", {
@@ -52,25 +60,51 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'sucesso') {
-                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-green-500 text-white mt-4";
-                    } else if (data.status === 'aviso') {
-                        // O Amigo com o Print cai aqui!
-                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-yellow-500 text-yellow-900 mt-4";
-                    } else {
-                        divResultado.className = "p-4 rounded-xl text-lg font-black uppercase tracking-widest bg-red-600 text-white mt-4";
-                    }
-                    divResultado.innerHTML = data.mensagem;
+                    // Esconde a caixinha do leitor e prepara a tela gigante colorida
+                    document.getElementById('main-card').classList.add('hidden');
+                    const fullscreen = document.getElementById('fullscreen-result');
+                    const bodyBg = document.getElementById('body-bg');
+                    const icon = document.getElementById('result-icon');
+                    const title = document.getElementById('result-title');
+                    const msg = document.getElementById('result-msg');
 
-                    // Reinicia automaticamente após 3 segundos para o próximo aluno
+                    fullscreen.classList.remove('hidden');
+                    
+                    if (data.status === 'sucesso') {
+                        bodyBg.className = "bg-green-500 text-white min-h-screen flex flex-col items-center justify-center p-4";
+                        icon.innerHTML = "✅";
+                        title.innerHTML = "LIBERADO!";
+                    } else if (data.status === 'aviso') {
+                        bodyBg.className = "bg-yellow-400 text-yellow-900 min-h-screen flex flex-col items-center justify-center p-4";
+                        icon.innerHTML = "⚠️";
+                        title.innerHTML = "JÁ LIDO!";
+                    } else {
+                        bodyBg.className = "bg-red-600 text-white min-h-screen flex flex-col items-center justify-center p-4";
+                        icon.innerHTML = "❌";
+                        title.innerHTML = "INVÁLIDO!";
+                    }
+                    
+                    msg.innerHTML = data.mensagem;
+
+                    // A MÁGICA: A tela inteira fica da cor do aviso por 3 segundos inteiros e depois volta pra câmera sozinha
                     setTimeout(reiniciarScanner, 3000);
                 });
         }
 
         function reiniciarScanner() {
+            // Volta a cor de fundo original
+            const bodyBg = document.getElementById('body-bg');
+            bodyBg.className = "bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300";
+            
+            // Esconde o textão gigante e volta a mostrar a câmera
+            document.getElementById('fullscreen-result').classList.add('hidden');
+            document.getElementById('main-card').classList.remove('hidden');
+            
+            // Limpa o aviso de "processando"
             document.getElementById('resultado').classList.add('hidden');
+            
             escaneando = true;
-            html5QrcodeScanner.resume();
+            html5QrcodeScanner.resume(); // Religa a câmera para o próximo da fila
         }
 
         html5QrcodeScanner.render(onScanSuccess);

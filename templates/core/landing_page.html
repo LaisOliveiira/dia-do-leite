@@ -51,25 +51,23 @@
 
         <div class="flex flex-col items-center mt-2">
             <p class="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-[0.3em] mb-8">
-                O MAIOR EVENTO AGROPECUÁRIO DO IFMG
+                UM DOS MAIORES EVENTOS AGROPECUÁRIOS DO IFMG
             </p>
 
             <div class="flex flex-wrap justify-center gap-4 mb-10">
                 <div
                     class="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <span class="text-xl">📅</span>
-                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">28 e 29 de
-                        Agosto</span>
+                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">28 e 29 de Agosto</span>
                 </div>
                 <div
                     class="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <span class="text-xl">📍</span>
-                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">IFMG
-                        Bambuí</span>
+                    <span class="font-black text-slate-700 text-xs md:text-sm uppercase tracking-wider">IFMG Bambuí</span>
                 </div>
             </div>
 
-            <a href="{% url 'comprar_ingressos' %}"
+            <a href="{% if user.is_authenticated %}{% url 'comprar_ingressos' %}{% else %}{% url 'login' %}{% endif %}"
                 class="bg-[#7a1b24] text-white font-black text-sm md:text-base uppercase tracking-widest px-12 py-5 rounded-full shadow-xl shadow-red-900/30 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 relative z-30">
                 Garantir Minha Vaga
             </a>
@@ -85,16 +83,13 @@
             <div class="h-[1px] w-12 bg-[#7a1b24]/30"></div>
         </div>
         <h2 class="text-5xl md:text-6xl font-black text-[#7a1b24] mb-8 tracking-tighter fonte-agro">Sobre a Edição</h2>
-        <p class="text-lg text-gray-600 leading-relaxed font-medium max-w-3xl mx-auto text-justify md:text-center">
-            O leite move o campo, conecta pessoas e impulsiona a inovação no agro. E é essa paixão pela
-            bovinocultura leiteira que faz do Dia do Leite um dos eventos mais marcantes do IFMG – Campus Bambuí.
+
+       <p class="text-lg text-gray-600 leading-relaxed font-medium max-w-3xl mx-auto text-left md:text-center">
+            O leite move o campo, conecta pessoas e impulsiona a inovação no agro. E é essa paixão pela bovinocultura leiteira que faz do Dia do Leite um dos eventos mais marcantes do IFMG – Campus Bambuí.
             <br><br>
-            Há 11 edições, estudantes, produtores e profissionais se reúnem para viver uma experiência de
-            aprendizado, troca de conhecimento e conexão com o setor leiteiro.
+            Há 11 edições, estudantes, produtores e profissionais se reúnem para viver uma experiência de aprendizado, troca de conhecimento e conexão com o setor leiteiro.
             <br><br>
-            Promovido pelo GEBOV e pelo Programa Mais Leite, o evento conta com palestras, mesas-redondas,
-            networking, feira do queijo e minicursos teórico-práticos com profissionais renomados, unindo
-            tecnologia, prática e vivências reais do campo.
+            Promovido pelo GEBOV e pelo Programa Mais Leite, o evento conta com palestras, mesas-redondas, networking, feira do queijo e minicursos teórico-práticos com profissionais renomados, unindo tecnologia, prática e vivências reais do campo.
         </p>
     </div>
 </div>
@@ -110,10 +105,9 @@
 
             <div class="relative z-10 text-center md:text-left flex-1">
                 <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight fonte-agro">
-                    Olá, <span class="text-gebov italic uppercase">{{ user.first_name }} {{ user.last_name }}!</span> 👋
+                    Olá, <span class="text-gebov italic uppercase">{% if request.user.first_name %}{{ request.user.first_name }}{% else %}{{ request.user.username }}{% endif %}!</span> 👋
                 </h1>
-                <p class="mt-4 text-[11px] text-gray-400 font-bold uppercase tracking-[0.2em]">Pronto para inovar no XI
-                    Dia do Leite?</p>
+                <p class="mt-4 text-[11px] text-gray-400 font-bold uppercase tracking-[0.2em]">Pronto para inovar no XI Dia do Leite?</p>
             </div>
 
             <div class="relative z-10 hidden md:flex justify-center flex-shrink-0">
@@ -145,6 +139,7 @@
                 </button>
             </div>
         </div>
+
         <div x-show="diaAtivo === 'dia28'" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-4"
             x-transition:enter-end="opacity-100 transform translate-y-0" style="display: none;">
@@ -287,8 +282,7 @@
                             class="text-[9px] font-black text-[#7a1b24] bg-white px-3 py-1.5 rounded-lg uppercase">Encerramento</span>
                         <span class="text-white font-black text-xl bg-white/20 px-3 py-1 rounded-lg">19h00</span>
                     </div>
-                    <h3 class="text-xl md:text-2xl font-black text-white fonte-agro mt-auto mb-2">Confraternização
-                        Oficial</h3>
+                    <h3 class="text-xl md:text-2xl font-black text-white fonte-agro mt-auto mb-2">Confraternização Oficial</h3>
                     <p class="text-red-200 text-sm font-medium flex items-center gap-2">📍 Rancho Frisiu / Haras BMO</p>
                 </div>
 
@@ -443,6 +437,7 @@
                 </div>
             </div>
         </div>
+    </div>
 </section>
 {% endif %}
 {% endblock %}

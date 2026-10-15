@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Credenciamento</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+        .cabecalho { text-align: center; margin-bottom: 20px; }
+        .btn-imprimir { 
+            background: #7a1b24; color: white; border: none; padding: 12px 24px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px;
+        }
+        .grupo-titulo {
+            background-color: #e2e8f0;
+            padding: 10px;
+            border: 1px solid #000;
+            border-bottom: none;
+            margin-top: 30px;
+            margin-bottom: 0;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 0; margin-bottom: 30px; }
+        th, td { border: 1px solid #000; padding: 8px 8px; text-align: left; font-size: 13px; }
+        th { background-color: #f8f9fa; font-size: 12px; }
+        .col-assinatura { width: 50%; }
+        .col-num { width: 5%; text-align: center; }
+        
+        @media print {
+            .btn-imprimir { display: none; }
+            body { margin: 0; }
+            .grupo-tabela { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir Lista</button>
+
+    <div class="cabecalho">
+        <h2>XI Dia do Leite - Lista de Presença Oficial</h2>
+        <p>Credenciamento na Portaria</p>
+    </div>
+
+    {% for titulo, nomes in listas.items %}
+    <div class="grupo-tabela">
+        <h3 class="grupo-titulo">{{ titulo }} ({{ nomes|length }} inscritos)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-num">Nº</th>
+                    <th>Nome do Participante</th>
+                    <th class="col-assinatura">Assinatura</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nome in nomes %}
+                <tr>
+                    <td class="col-num">{{ forloop.counter }}</td>
+                    <td><strong>{{ nome }}</strong></td>
+                    <td></td> <!-- Coluna vazia para a caneta -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% empty %}
+    <p style="text-align: center;">Nenhum participante com pagamento aprovado ainda.</p>
+    {% endfor %}
+
+</body>
+</html>

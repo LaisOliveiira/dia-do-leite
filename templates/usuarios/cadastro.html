@@ -14,7 +14,7 @@
         {% endfor %}
         {% endif %}
 
-        <form method="POST" class="space-y-6">
+        <form method="POST" class="space-y-6" onsubmit="travarBotao(this)">
             {% csrf_token %}
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nome Completo</label>
@@ -68,11 +68,23 @@
         v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
         i.value = v;
     }
+    
     function mascaraTelefone(i) {
         let v = i.value.replace(/\D/g, "");
         v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
         v = v.replace(/(\d)(\d{4})$/, "$1-$2");
         i.value = v;
+    }
+
+    // NOVA FUNÇÃO PARA TRAVAR O BOTÃO
+    function travarBotao(form) {
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = 'Aguarde...'; // Muda o texto
+            // Adiciona efeitos visuais do Tailwind para mostrar que está bloqueado
+            btn.classList.add('opacity-75', 'cursor-not-allowed', 'animate-pulse');
+        }
     }
 </script>
 {% endblock %}

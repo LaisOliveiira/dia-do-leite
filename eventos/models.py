@@ -2,6 +2,10 @@ from django.db import models
 from django.conf import settings
 import uuid
 
+# --- NOVOS IMPORTS PARA O GATILHO AUTOMÁTICO ---
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
 class TipoEvento(models.Model):
     nome = models.CharField(max_length=100)
     
@@ -64,3 +68,21 @@ class GaleriaFoto(models.Model):
 
     def __str__(self):
         return f"Foto da {self.edicao.numero}"
+
+# =========================================================
+# GATILHO AUTOMÁTICO (SINAL) - DEVOLUÇÃO DE VAGAS
+# =========================================================
+@receiver(post_delete, sender=Inscricao)
+def devolver_vaga_cancelada(sender, instance, **kwargs):
+    """
+    Toda vez que uma Inscrição for deletada no banco,
+    este código roda automaticamente e devolve 1 vaga (apenas para minicursos).
+    """
+    try:
+        if instance.evento and hasattr(instance.evento, 'vagas'):
+            # Verifica se é um minicurso (para não mexer nas vagas ilimitadas das palestras)
+            if 'mini' in instance.evento.tipo.nome.lower():
+                instance.evento.vagas += 1
+                instance.evento.save()
+    except Exception as e:
+        print(f"Erro ao devolver vaga: {e}")
